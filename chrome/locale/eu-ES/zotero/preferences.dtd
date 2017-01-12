@@ -8,12 +8,9 @@
 <!ENTITY zotero.preferences.prefpane.general "Orokorra">
 
 <!ENTITY zotero.preferences.userInterface "Interazea">
-<!ENTITY zotero.preferences.showIn "Load Zotero in:">
-<!ENTITY zotero.preferences.showIn.browserPane "Browser pane">
-<!ENTITY zotero.preferences.showIn.separateTab "Separate tab">
-<!ENTITY zotero.preferences.showIn.appTab "App tab">
-<!ENTITY zotero.preferences.statusBarIcon "Status bar Ikurra:">
-<!ENTITY zotero.preferences.statusBarIcon.none "Kendu">
+<!ENTITY zotero.preferences.layout "Layout:">
+<!ENTITY zotero.preferences.layout.standard "Standard">
+<!ENTITY zotero.preferences.layout.stacked "Stacked">
 <!ENTITY zotero.preferences.fontSize "Font neurria:">
 <!ENTITY zotero.preferences.fontSize.small "txikia">
 <!ENTITY zotero.preferences.fontSize.medium "erdia">
@@ -41,6 +38,12 @@
 <!ENTITY zotero.preferences.groups.childLinks "erantsiktako URLak">
 <!ENTITY zotero.preferences.groups.tags "tags">
 
+<!ENTITY zotero.preferences.feeds "Feeds">
+<!ENTITY zotero.preferences.feeds.sorting.label "Sorting:">
+<!ENTITY zotero.preferences.feeds.sorting.newest "Newest items first">
+<!ENTITY zotero.preferences.feeds.sorting.oldest "Oldest items first">
+<!ENTITY zotero.preferences.feeds.feedDefaults "Feed Defaults">
+
 <!ENTITY zotero.preferences.openurl.caption "OpenURL">
 
 <!ENTITY zotero.preferences.openurl.search "Search for resolvers">
@@ -51,7 +54,9 @@
 <!ENTITY zotero.preferences.prefpane.sync "Sync">
 <!ENTITY zotero.preferences.sync.username "Erabiltzailea:">
 <!ENTITY zotero.preferences.sync.password "Pasahitza:">
-<!ENTITY zotero.preferences.sync.syncServer "Zotero Sync Zerbitzaria">
+<!ENTITY zotero.preferences.sync.syncServer "Data Syncing">
+<!ENTITY zotero.preferences.sync.setUpSync "Set Up Syncing">
+<!ENTITY zotero.preferences.sync.unlinkAccount "Unlink Account...">
 <!ENTITY zotero.preferences.sync.createAccount "Kontua sortu">
 <!ENTITY zotero.preferences.sync.lostPassword "Pasahitza ahaztu zaizu?">
 <!ENTITY zotero.preferences.sync.syncAutomatically "Sinkronizatu automatikoki">
@@ -67,11 +72,15 @@
 <!ENTITY zotero.preferences.sync.fileSyncing.download.onDemand "as needed">
 <!ENTITY zotero.preferences.sync.fileSyncing.tos1 "By using Zotero storage, you agree to become bound by its">
 <!ENTITY zotero.preferences.sync.fileSyncing.tos2 "terms and conditions">
+<!ENTITY zotero.preferences.sync.librariesToSync "Libraries to Sync">
+<!ENTITY zotero.preferences.sync.librariesToSync.button "Choose Libraries...">
+<!ENTITY zotero.preferences.sync.librariesToSync.sync "Sync">
+<!ENTITY zotero.preferences.sync.librariesToSync.library "Library">
 <!ENTITY zotero.preferences.sync.reset.warning1 "The following operations are for use only in rare, specific situations and should not be used for general troubleshooting. In many cases, resetting will cause additional problems. See ">
 <!ENTITY zotero.preferences.sync.reset.warning2 "Sync Reset Options">
 <!ENTITY zotero.preferences.sync.reset.warning3 " for more information.">
-<!ENTITY zotero.preferences.sync.reset.fullSync "Full Sync with Zotero Server">
-<!ENTITY zotero.preferences.sync.reset.fullSync.desc "Datu-base lokala eta zerbitzarikoa batu, sinkronizatze-kronika bastertuz.">
+<!ENTITY zotero.preferences.sync.reset.fullSync "Full Sync">
+<!ENTITY zotero.preferences.sync.reset.fullSync.desc "Merge local data with data from server, ignoring sync history.">
 <!ENTITY zotero.preferences.sync.reset.restoreFromServer "Datu-basea zerbitzaritik jeitsi">
 <!ENTITY zotero.preferences.sync.reset.restoreFromServer.desc "Ezabatu datu-base lokala eta erabili zerbitzarikoa.">
 <!ENTITY zotero.preferences.sync.reset.restoreToServer "Datu base lokala zerbitzarira igo">
@@ -109,6 +118,7 @@
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Domain/Path">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath.example "(e.g. wikipedia.org)">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.outputFormat "Output Format">
+<!ENTITY zotero.preferences.quickCopy.siteEditor.locale "Language">
 <!ENTITY zotero.preferences.quickCopy.dragLimit "Disable Quick Copy when dragging more than">
 
 <!ENTITY zotero.preferences.prefpane.cite "Cite">
@@ -125,8 +135,6 @@
 <!ENTITY zotero.preferences.cite.styles.styleManager.csl "CSL">
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Estilo gehialgo instalatu...">
 
-<!ENTITY zotero.preferences.prefpane.keys "Teklatu-komandoak">
-
 <!ENTITY zotero.preferences.keys.openZotero "Ireki/Itxi Zotero panela">
 <!ENTITY zotero.preferences.keys.saveToZotero "Save to Zotero (address bar icon)">
 <!ENTITY zotero.preferences.keys.toggleFullscreen "Pantaila osoa bai/ez">
@@ -134,6 +142,7 @@
 <!ENTITY zotero.preferences.keys.quicksearch "Bilatu:">
 <!ENTITY zotero.preferences.keys.newItem "Create a New Item">
 <!ENTITY zotero.preferences.keys.newNote "Create a New Note">
+<!ENTITY zotero.preferences.keys.toggleAllRead "Mark All Feed Items As Read/Unread">
 <!ENTITY zotero.preferences.keys.toggleTagSelector "Esteka-hautatzailea ikusi bai/ez">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Hautatutako item aipamenak arbelera kopiatu">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Hautatutako itemak arbelera kopiatu">
@@ -148,6 +157,7 @@
 <!ENTITY zotero.preferences.proxies.desc_after_link "for more information.">
 <!ENTITY zotero.preferences.proxies.transparent "Automatically remember proxied resources">
 <!ENTITY zotero.preferences.proxies.autoRecognize "Automatically recognize proxied resources">
+<!ENTITY zotero.preferences.proxies.showRedirectNotification "Show notification when redirecting through a proxy">
 <!ENTITY zotero.preferences.proxies.disableByDomain "Disable proxy redirection when my domain name contains ">
 <!ENTITY zotero.preferences.proxies.configured "Configured Proxies">
 <!ENTITY zotero.preferences.proxies.hostname "Hostname">
@@ -164,6 +174,7 @@
 
 <!ENTITY zotero.preferences.prefpane.advanced "Advanced">
 <!ENTITY zotero.preferences.advanced.filesAndFolders "Files and Folders">
+<!ENTITY zotero.preferences.advanced.keys "Shortcuts">
 
 <!ENTITY zotero.preferences.prefpane.locate "Locate">
 <!ENTITY zotero.preferences.locate.locateEngineManager "Article Lookup Engine Manager">
@@ -182,6 +193,7 @@
 <!ENTITY zotero.preferences.dataDir.custom "Custom:">
 <!ENTITY zotero.preferences.dataDir.choose "Choose...">
 <!ENTITY zotero.preferences.dataDir.reveal "Show Data Directory">
+<!ENTITY zotero.preferences.dataDir.migrate "Migrate To New Default Location…">
 
 <!ENTITY zotero.preferences.attachmentBaseDir.caption "Linked Attachment Base Directory">
 <!ENTITY zotero.preferences.attachmentBaseDir.message "Zotero will use relative paths for linked file attachments within the base directory, allowing you to access files on different computers as long as the file structure within the base directory remains the same.">
@@ -204,6 +216,6 @@
 <!ENTITY zotero.preferences.debugOutputLogging.submitToServer "Bidali Zotero zerbitzarira">
 
 <!ENTITY zotero.preferences.openAboutConfig "Open about:config">
-<!ENTITY zotero.preferences.openCSLEdit "Open CSL Editor">
-<!ENTITY zotero.preferences.openCSLPreview "Open CSL Preview">
+<!ENTITY zotero.preferences.openCSLEdit "Open Style Editor">
+<!ENTITY zotero.preferences.openCSLPreview "Open Style Preview">
 <!ENTITY zotero.preferences.openAboutMemory "Open about:memory">

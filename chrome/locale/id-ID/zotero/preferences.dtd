@@ -8,12 +8,9 @@
 <!ENTITY zotero.preferences.prefpane.general "General">
 
 <!ENTITY zotero.preferences.userInterface "Antarmuka pengguna">
-<!ENTITY zotero.preferences.showIn "Muat Zotero di dalam:">
-<!ENTITY zotero.preferences.showIn.browserPane "Jendela peramban">
-<!ENTITY zotero.preferences.showIn.separateTab "Tab terpisah">
-<!ENTITY zotero.preferences.showIn.appTab "Tab App">
-<!ENTITY zotero.preferences.statusBarIcon "Logo bar status:">
-<!ENTITY zotero.preferences.statusBarIcon.none "Tidak ada">
+<!ENTITY zotero.preferences.layout "Layout:">
+<!ENTITY zotero.preferences.layout.standard "Standard">
+<!ENTITY zotero.preferences.layout.stacked "Stacked">
 <!ENTITY zotero.preferences.fontSize "Ukuran font:">
 <!ENTITY zotero.preferences.fontSize.small "Kecil">
 <!ENTITY zotero.preferences.fontSize.medium "Sedang">
@@ -41,6 +38,12 @@
 <!ENTITY zotero.preferences.groups.childLinks "tautan anak">
 <!ENTITY zotero.preferences.groups.tags "tags">
 
+<!ENTITY zotero.preferences.feeds "Feeds">
+<!ENTITY zotero.preferences.feeds.sorting.label "Sorting:">
+<!ENTITY zotero.preferences.feeds.sorting.newest "Newest items first">
+<!ENTITY zotero.preferences.feeds.sorting.oldest "Oldest items first">
+<!ENTITY zotero.preferences.feeds.feedDefaults "Feed Defaults">
+
 <!ENTITY zotero.preferences.openurl.caption "OpenURL">
 
 <!ENTITY zotero.preferences.openurl.search "Cari resolver">
@@ -51,7 +54,9 @@
 <!ENTITY zotero.preferences.prefpane.sync "Sinkronisasi">
 <!ENTITY zotero.preferences.sync.username "Nama pengguna:">
 <!ENTITY zotero.preferences.sync.password "Password:">
-<!ENTITY zotero.preferences.sync.syncServer "Server Sinkronisasi Zotero">
+<!ENTITY zotero.preferences.sync.syncServer "Data Syncing">
+<!ENTITY zotero.preferences.sync.setUpSync "Set Up Syncing">
+<!ENTITY zotero.preferences.sync.unlinkAccount "Unlink Account...">
 <!ENTITY zotero.preferences.sync.createAccount "Buat Akun">
 <!ENTITY zotero.preferences.sync.lostPassword "Kehilangan Password?">
 <!ENTITY zotero.preferences.sync.syncAutomatically "SInkronisasikan secara automatis">
@@ -67,11 +72,15 @@
 <!ENTITY zotero.preferences.sync.fileSyncing.download.onDemand "as needed">
 <!ENTITY zotero.preferences.sync.fileSyncing.tos1 "Dengan menggunakan penyimpanan Zotero, Anda sepakat untuk terikat dengan ">
 <!ENTITY zotero.preferences.sync.fileSyncing.tos2 "syarat dan ketentuan di dalamnya">
+<!ENTITY zotero.preferences.sync.librariesToSync "Libraries to Sync">
+<!ENTITY zotero.preferences.sync.librariesToSync.button "Choose Libraries...">
+<!ENTITY zotero.preferences.sync.librariesToSync.sync "Sync">
+<!ENTITY zotero.preferences.sync.librariesToSync.library "Library">
 <!ENTITY zotero.preferences.sync.reset.warning1 "The following operations are for use only in rare, specific situations and should not be used for general troubleshooting. In many cases, resetting will cause additional problems. See ">
 <!ENTITY zotero.preferences.sync.reset.warning2 "Sync Reset Options">
 <!ENTITY zotero.preferences.sync.reset.warning3 " for more information.">
-<!ENTITY zotero.preferences.sync.reset.fullSync "Sinkronisasi Penuh dengan Server Zotero">
-<!ENTITY zotero.preferences.sync.reset.fullSync.desc "Gabungkan data Zotero lokal dengan data dari server sinkronisasi, abaikan riwayat sinkronisasi.">
+<!ENTITY zotero.preferences.sync.reset.fullSync "Full Sync">
+<!ENTITY zotero.preferences.sync.reset.fullSync.desc "Merge local data with data from server, ignoring sync history.">
 <!ENTITY zotero.preferences.sync.reset.restoreFromServer "Kembalikan dari Server Zotero">
 <!ENTITY zotero.preferences.sync.reset.restoreFromServer.desc "Hapus semua data Zotero lokal dan kembalikan dari server sinkronisasi.">
 <!ENTITY zotero.preferences.sync.reset.restoreToServer "Kembalikan kepada Server Zotero">
@@ -109,6 +118,7 @@
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Domain/Rute">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath.example "(misalnya, wikipedia.org)">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.outputFormat "Format Ouput">
+<!ENTITY zotero.preferences.quickCopy.siteEditor.locale "Language">
 <!ENTITY zotero.preferences.quickCopy.dragLimit "Matikan fitur Salin Cepat saat menarik lebih dari">
 
 <!ENTITY zotero.preferences.prefpane.cite "Mengutip">
@@ -125,8 +135,6 @@
 <!ENTITY zotero.preferences.cite.styles.styleManager.csl "CSL">
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Dapatkan gaya tambahan">
 
-<!ENTITY zotero.preferences.prefpane.keys "Shortcut">
-
 <!ENTITY zotero.preferences.keys.openZotero "Buka/Tutup  Jendela Zotero">
 <!ENTITY zotero.preferences.keys.saveToZotero "Save to Zotero (address bar icon)">
 <!ENTITY zotero.preferences.keys.toggleFullscreen "Hidupkan/Matikan Mode Layar Penuh">
@@ -134,6 +142,7 @@
 <!ENTITY zotero.preferences.keys.quicksearch "Pencarian Cepat">
 <!ENTITY zotero.preferences.keys.newItem "Create a New Item">
 <!ENTITY zotero.preferences.keys.newNote "Create a New Note">
+<!ENTITY zotero.preferences.keys.toggleAllRead "Mark All Feed Items As Read/Unread">
 <!ENTITY zotero.preferences.keys.toggleTagSelector "Munculkan/Sembunyikan Selektor Tag">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Salin Sitasi Item Terpilih ke Clipboard">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Salin Item Terpilih ke Clipboard">
@@ -148,6 +157,7 @@
 <!ENTITY zotero.preferences.proxies.desc_after_link "untuk informasi lebih lanjut.">
 <!ENTITY zotero.preferences.proxies.transparent "Aktifkan pengalihan proksi">
 <!ENTITY zotero.preferences.proxies.autoRecognize "Kenali secara automatis sumber-sumber yang terproksi">
+<!ENTITY zotero.preferences.proxies.showRedirectNotification "Show notification when redirecting through a proxy">
 <!ENTITY zotero.preferences.proxies.disableByDomain "Nonaktifkan pengalihan proksi ketika nama domain saya mengandung">
 <!ENTITY zotero.preferences.proxies.configured "Proksi Terkonfigurasi">
 <!ENTITY zotero.preferences.proxies.hostname "Nama Host">
@@ -164,6 +174,7 @@
 
 <!ENTITY zotero.preferences.prefpane.advanced "Lebih Lanjut">
 <!ENTITY zotero.preferences.advanced.filesAndFolders "Files and Folders">
+<!ENTITY zotero.preferences.advanced.keys "Shortcuts">
 
 <!ENTITY zotero.preferences.prefpane.locate "Temukan">
 <!ENTITY zotero.preferences.locate.locateEngineManager "Pengelola Mesin Pencarian Artikel">
@@ -182,6 +193,7 @@
 <!ENTITY zotero.preferences.dataDir.custom "Buatan:">
 <!ENTITY zotero.preferences.dataDir.choose "Pilih...">
 <!ENTITY zotero.preferences.dataDir.reveal "Tunjukkan Direktori Data">
+<!ENTITY zotero.preferences.dataDir.migrate "Migrate To New Default Location…">
 
 <!ENTITY zotero.preferences.attachmentBaseDir.caption "Linked Attachment Base Directory">
 <!ENTITY zotero.preferences.attachmentBaseDir.message "Zotero will use relative paths for linked file attachments within the base directory, allowing you to access files on different computers as long as the file structure within the base directory remains the same.">
@@ -204,6 +216,6 @@
 <!ENTITY zotero.preferences.debugOutputLogging.submitToServer "Kirimkan ke Server Zotero">
 
 <!ENTITY zotero.preferences.openAboutConfig "Buka about:config">
-<!ENTITY zotero.preferences.openCSLEdit "Buka editor CSL">
-<!ENTITY zotero.preferences.openCSLPreview "Buka preview CSL">
+<!ENTITY zotero.preferences.openCSLEdit "Open Style Editor">
+<!ENTITY zotero.preferences.openCSLPreview "Open Style Preview">
 <!ENTITY zotero.preferences.openAboutMemory "Open about:memory">

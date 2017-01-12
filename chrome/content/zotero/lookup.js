@@ -27,11 +27,11 @@
  * Handles UI for lookup panel
  * @namespace
  */
-const Zotero_Lookup = new function () {
+var Zotero_Lookup = new function () {
 	/**
 	 * Performs a lookup by DOI, PMID, or ISBN
 	 */
-	this.accept = function(textBox) {
+	this.accept = Zotero.Promise.coroutine(function* (textBox) {
 		var foundIDs = [];	//keep track of identifiers to avoid duplicates
 		var identifier = textBox.value;
 		//first look for DOIs
@@ -87,14 +87,15 @@ const Zotero_Lookup = new function () {
 		}
 
 		if(!items.length) {
-			var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-											.getService(Components.interfaces.nsIPromptService);
-			prompts.alert(window, Zotero.getString("lookup.failure.title"),
-				Zotero.getString("lookup.failureToID.description"));
+			Zotero.alert(
+				window,
+				Zotero.getString("lookup.failure.title"),
+				Zotero.getString("lookup.failureToID.description")
+			);
 			return false;
 		}
 
-		var libraryID = null;
+		var libraryID = false;
 		var collection = false;
 		try {
 			libraryID = ZoteroPane_Local.getSelectedLibraryID();
@@ -110,42 +111,39 @@ const Zotero_Lookup = new function () {
 
 		var item;
 		while(item = items.pop()) {
-			(function(item) {
-				var translate = new Zotero.Translate.Search();
-				translate.setSearch(item);
+			var translate = new Zotero.Translate.Search();
+			translate.setSearch(item);
 
-				// be lenient about translators
-				translate.getTranslators().then(function(translators) {
-					translate.setTranslator(translators);
+			// be lenient about translators
+			let translators = yield translate.getTranslators();
+			translate.setTranslator(translators);
 
-					translate.setHandler("done", function(translate, success) {
-						notDone--;
-						successful += success;
+			translate.setHandler("done", function(translate, success) {
+				notDone--;
+				successful += success;
 
-						if(!notDone) {	//i.e. done
-							Zotero_Lookup.toggleProgress(false);
-							if(successful) {
-								document.getElementById("zotero-lookup-panel").hidePopup();
-							} else {
-								var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-																				.getService(Components.interfaces.nsIPromptService);
-								prompts.alert(window, Zotero.getString("lookup.failure.title"),
-									Zotero.getString("lookup.failure.description"));
-							}
-						}
-					});
+				if(!notDone) {	//i.e. done
+					Zotero_Lookup.toggleProgress(false);
+					if(successful) {
+						document.getElementById("zotero-lookup-panel").hidePopup();
+					} else {
+						Zotero.alert(
+							window,
+							Zotero.getString("lookup.failure.title"),
+							Zotero.getString("lookup.failure.description")
+						);
+					}
+				}
+			});
 
-					translate.setHandler("itemDone", function(obj, item) {
-						if(collection) collection.addItem(item.id);
-					});
-					
-					translate.translate(libraryID);
-				});
-			})(item);
+			yield translate.translate({
+				libraryID,
+				collections: collection ? [collection.id] : false
+			});
 		}
 
 		return false;
-	}
+	});
 	
 	/**
 	 * Handles a key press

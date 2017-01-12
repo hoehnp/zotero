@@ -1,3 +1,5 @@
+<!ENTITY zotero.general.yes "Da">
+<!ENTITY zotero.general.no "Nu">
 <!ENTITY zotero.general.optional "(Opțional)">
 <!ENTITY zotero.general.note "Notă:">
 <!ENTITY zotero.general.selectAll "Selectează tot">
@@ -6,9 +8,14 @@
 <!ENTITY zotero.general.delete "Ștergere">
 <!ENTITY zotero.general.ok "OK">
 <!ENTITY zotero.general.cancel "Anulare">
+<!ENTITY zotero.general.refresh "Reîmprospătare">
+<!ENTITY zotero.general.saveAs "Salvare ca...">
+<!ENTITY zotero.general.advancedOptions.label "Opțiuni avansate">
+<!ENTITY zotero.general.more "Mai mult">
+<!ENTITY zotero.general.loading "Loading…">
 
 <!ENTITY zotero.errorReport.title "Raportul de erori Zotero">
-<!ENTITY zotero.errorReport.unrelatedMessages "This may include messages unrelated to Zotero.">
+<!ENTITY zotero.errorReport.unrelatedMessages "Aceasta ar putea include mesaje fără legătură cu Zotero.">
 <!ENTITY zotero.errorReport.submissionInProgress "Așteaptă, te rog, ca raportul de eroare să fie trimis.">
 <!ENTITY zotero.errorReport.submitted "Raportul de eroare a fost trimis.">
 <!ENTITY zotero.errorReport.reportID "ID raport:">
@@ -45,7 +52,7 @@
 <!ENTITY zotero.collections.showUnfiledItems "Arată înregistrările neîndosariate">
 
 <!ENTITY zotero.items.itemType "Tip înregistrare">
-<!ENTITY zotero.items.type_column "Item Type">
+<!ENTITY zotero.items.type_column "Tip de înregistrare">
 <!ENTITY zotero.items.title_column "Titlu">
 <!ENTITY zotero.items.creator_column "Creator">
 <!ENTITY zotero.items.date_column "Dată">
@@ -98,7 +105,9 @@
 <!ENTITY zotero.toolbar.newItemFromPage.label "Creează o înregistrare nouă din pagina curentă">
 <!ENTITY zotero.toolbar.lookup.label "Adaugă înregistrare (înregistrări) după identificator">
 <!ENTITY zotero.toolbar.removeItem.label "Șterge înregistrare...">
+<!ENTITY zotero.toolbar.newLibrary.label "Bibliotecă nouă...">
 <!ENTITY zotero.toolbar.newCollection.label "Colecție nouă...">
+<!ENTITY zotero.toolbar.markFeedRead.label "Marchează fluxul ca citit">
 <!ENTITY zotero.toolbar.newGroup "Grup nou...">
 <!ENTITY zotero.toolbar.newSubcollection.label "Subcolecție nouă...">
 <!ENTITY zotero.toolbar.newSavedSearch.label "Căutare salvată nouă...">
@@ -114,16 +123,25 @@
 <!ENTITY zotero.toolbar.supportAndDocumentation "Suport și documentație">
 <!ENTITY zotero.toolbar.about.label "Despre Zotero">
 <!ENTITY zotero.toolbar.advancedSearch "Căutare avansată">
-<!ENTITY zotero.toolbar.tab.tooltip "Comută în modul filă">
 <!ENTITY zotero.toolbar.openURL.label "Localizare">
 <!ENTITY zotero.toolbar.openURL.tooltip "Găsește în biblioteca ta locală">
+
+<!ENTITY zotero.toolbar.feeds.new "Flux nou...">
+<!ENTITY zotero.toolbar.feeds.new.fromURL "Din URL…">
+<!ENTITY zotero.toolbar.feeds.new.fromPage "Din pagină...">
+<!ENTITY zotero.toolbar.feeds.new.fromOPML "Din OPML...">
+<!ENTITY zotero.toolbar.feeds.refresh "Reîmprospătare flux">
+<!ENTITY zotero.toolbar.feeds.edit "Modificare flux...">
 
 <!ENTITY zotero.item.add "Adaugă">
 <!ENTITY zotero.item.attachment.file.show "Arată fișier">
 <!ENTITY zotero.item.textTransform "Transformă text">
 <!ENTITY zotero.item.textTransform.titlecase "Litere de Titlu">
 <!ENTITY zotero.item.textTransform.sentencecase "Majusculă ca la propoziție">
-<!ENTITY zotero.item.creatorTransform.nameSwap "Schimbă prenume/nume">
+<!ENTITY zotero.item.creatorTransform.nameSwap "Schimbă Prenume/Nume">
+<!ENTITY zotero.item.viewOnline "Vezi online">
+<!ENTITY zotero.item.copyAsURL "Copiază ca URL">
+<!ENTITY zotero.item.deletePermanently "Șterge permanent...">
 
 <!ENTITY zotero.toolbar.newNote "Notă nouă">
 <!ENTITY zotero.toolbar.note.standalone "Notă independentă nouă">
@@ -135,11 +153,9 @@
 <!ENTITY zotero.toolbar.attachment.snapshot "Creează un instantaneu al paginii curente">
 
 <!ENTITY zotero.tagSelector.noTagsToDisplay "Nicio etichetă pentru afişare">
-<!ENTITY zotero.tagSelector.filter "Filtru:">
+<!ENTITY zotero.tagSelector.loadingTags "Încarcă etichete...">
 <!ENTITY zotero.tagSelector.showAutomatic "Arată automat">
 <!ENTITY zotero.tagSelector.displayAllInLibrary "Afișează toate etichetele din această bibliotecă">
-<!ENTITY zotero.tagSelector.selectVisible "Selectează vedere">
-<!ENTITY zotero.tagSelector.clearVisible "Deselectează vedere">
 <!ENTITY zotero.tagSelector.clearAll "Deselectează totul">
 <!ENTITY zotero.tagSelector.assignColor "Stabilește culoare...">
 <!ENTITY zotero.tagSelector.renameTag "Redenumește eticheta...">
@@ -161,6 +177,8 @@
 
 <!ENTITY zotero.bibliography.title "Creează citare/bibliografie">
 <!ENTITY zotero.bibliography.style.label "Stil de citare:">
+<!ENTITY zotero.bibliography.manageStyles "Administrează stiluri...">
+<!ENTITY zotero.bibliography.locale.label "Limbă:">
 <!ENTITY zotero.bibliography.outputMode "Mod de ieșire:">
 <!ENTITY zotero.bibliography.bibliography "Bibliografie">
 <!ENTITY zotero.bibliography.outputMethod "Metodă de ieșire:">
@@ -185,9 +203,6 @@
 
 <!ENTITY zotero.citation.keepSorted.label "Păstrează sursele sortate">
 
-<!ENTITY zotero.citation.page "Pagină">
-<!ENTITY zotero.citation.paragraph "Paragraf">
-<!ENTITY zotero.citation.line "Linie">
 <!ENTITY zotero.citation.suppressAuthor.label "Suprimă autor">
 <!ENTITY zotero.citation.prefix.label "Prefix:">
 <!ENTITY zotero.citation.suffix.label "Sufix:">
@@ -225,7 +240,6 @@
 
 <!ENTITY zotero.integration.references.label "Referințe în bibliografie">
 
-<!ENTITY zotero.sync.button "Sincronizare cu serverul Zotero">
 <!ENTITY zotero.sync.error "Eroare la sincronizare">
 <!ENTITY zotero.sync.storage.progress "Progres:">
 <!ENTITY zotero.sync.storage.downloads "Descărcări:">
@@ -250,6 +264,18 @@
 <!ENTITY zotero.proxy.recognized.warning.secondary "Adăugarea altor servere proxy permite site-urilor malițioase să se prezinte drept site-uri de încredere.">
 <!ENTITY zotero.proxy.recognized.disable.label "Nu redirecționa automat cererile prin serverele proxy recunoscute anterior">
 <!ENTITY zotero.proxy.recognized.ignore.label "Ignoră">
+
+<!ENTITY zotero.feedSettings.title "Setări flux">
+<!ENTITY zotero.feedSettings.saveButton.label "Salvează">
+<!ENTITY zotero.feedSettings.url.label "URL:">
+<!ENTITY zotero.feedSettings.title.label "Titlu:">
+<!ENTITY zotero.feedSettings.refresh.label1 "Actualizare flux la fiecare">
+<!ENTITY zotero.feedSettings.refresh.label2 "ore (oră)">
+<!ENTITY zotero.feedSettings.cleanupUnreadAfter.label1 "Remove unread feed items after">
+<!ENTITY zotero.feedSettings.cleanupUnreadAfter.label2 "day(s)">
+<!ENTITY zotero.feedSettings.cleanupReadAfter.label1 "Remove read feed items after">
+<!ENTITY zotero.feedSettings.cleanupReadAfter.label2 "day(s)">
+
 
 <!ENTITY zotero.recognizePDF.recognizing.label "Extrage metadatele...">
 <!ENTITY zotero.recognizePDF.cancel.label "Anulare">
@@ -284,3 +310,7 @@
 <!ENTITY zotero.downloadManager.label "Salvează în Zotero">
 <!ENTITY zotero.downloadManager.saveToLibrary.description "Anexele nu pot fi salvate în biblioteca selectată. Această înregistrare va fi salvată în schimb în biblioteca ta.">
 <!ENTITY zotero.downloadManager.noPDFTools.description "Pentru a folosi această facilitate, trebuie să instalezi mai întâi uneletele PDF în preferințele Zotero.">
+
+<!ENTITY zotero.attachLink.title "Anexează link la URI">
+<!ENTITY zotero.attachLink.label.link "Link:">
+<!ENTITY zotero.attachLink.label.title "Titlu:">

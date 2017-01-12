@@ -33,7 +33,7 @@ const ZoteroStandalone = new function() {
 	 * Run when standalone window first opens
 	 */
 	this.onLoad = function() {
-		Q.fcall(function () {
+		Zotero.Promise.try(function () {
 			if(!Zotero) {
 				throw true;
 			}
@@ -43,6 +43,10 @@ const ZoteroStandalone = new function() {
 			return Zotero.initializationPromise;
 		})
 		.then(function () {
+			if (Zotero.Prefs.get('devtools.errorconsole.enabled', true)) {
+				document.getElementById('menu_errorConsole').hidden = false;
+			}
+			
 			Zotero.hideZoteroPaneOverlays();
 			ZoteroPane.init();
 			ZoteroPane.makeVisible();
@@ -52,7 +56,7 @@ const ZoteroStandalone = new function() {
 					.getService(Components.interfaces.nsIExternalProtocolService);
 			var hs = Components.classes["@mozilla.org/uriloader/handler-service;1"]
 					.getService(Components.interfaces.nsIHandlerService);
-			for each(var scheme in ["http", "https"]) {
+			for (let scheme of ["http", "https"]) {
 				var handlerInfo = eps.getProtocolHandlerInfo(scheme);
 				handlerInfo.preferredAction = Components.interfaces.nsIHandlerInfo.useSystemDefault;
 				handlerInfo.alwaysAskBeforeHandling = false;
@@ -67,6 +71,8 @@ const ZoteroStandalone = new function() {
 			Services.obs.addObserver(gXPInstallObserver, "addon-install-complete", false);
 		})
 		.catch(function (e) {
+			try { Zotero.debug(e, 1); } catch (e) {}
+			Components.utils.reportError(e);
 			ZoteroPane.displayStartupError();
 			window.close();
 			return;
@@ -105,7 +111,9 @@ const ZoteroStandalone = new function() {
 				menuitem.setAttribute("label", itemTypes[i].localized);
 				menuitem.setAttribute("tooltiptext", "");
 				let type = itemTypes[i].id;
-				menuitem.addEventListener("command", function() { ZoteroPane_Local.newItem(type); }, false);
+				menuitem.addEventListener("command", function() {
+					ZoteroPane_Local.newItem(type, null, null, true);
+				}, false);
 				menuitem.className = "zotero-tb-add";
 				addMenu.appendChild(menuitem);
 			}
@@ -117,19 +125,31 @@ const ZoteroStandalone = new function() {
 		}
 	}
 	
-	/**
-	 * Opens a URL in the basic viewer
-	 */
-	this.openInViewer = function(uri) {
-		var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-			.getService(Components.interfaces.nsIWindowMediator);
-		var win = wm.getMostRecentWindow("zotero:basicViewer");
-		if(win) {
-			win.loadURI(uri);
-		} else {
-			window.openDialog("chrome://zotero/content/standalone/basicViewer.xul",
-				"basicViewer", "chrome,resizable,centerscreen,menubar,scrollbars", uri);
-		}
+	this.updateAddonsPane = function (doc) {
+		// Hide unsigned add-on verification warnings
+		//
+		// This only works for the initial load of the window. If the user switches to Appearance
+		// or Plugins and then back to Extensions, the warnings will appear again. A better way to
+		// disable this might be discoverable by studying
+		// https://dxr.mozilla.org/mozilla-central/source/toolkit/mozapps/extensions/content/extensions.js
+		var addonList = doc.getElementById('addon-list');
+		setTimeout(function () {
+			for (let i = 0; i < addonList.itemCount; i++) {
+				let richListItem = addonList.getItemAtIndex(i);
+				let container = doc.getAnonymousElementByAttribute(
+					richListItem, 'anonid', 'warning-container'
+				);
+				if (container) {
+					let link = doc.getAnonymousElementByAttribute(
+						richListItem, 'anonid', 'warning-link'
+					);
+					if (link && link.href.indexOf('unsigned-addons') != -1) {
+						richListItem.removeAttribute('notification');
+						container.hidden = true;
+					}
+				}
+			}
+		});
 	}
 	
 	/**
@@ -157,6 +177,7 @@ const ZoteroStandalone = new function() {
 	 */
 	this.onUnload = function() {
 		ZoteroPane.destroy();
+		goQuitApplication();
 	}
 }
 

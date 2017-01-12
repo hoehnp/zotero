@@ -253,11 +253,26 @@ Zotero.Utilities.Translate.prototype.processDocuments = function(urls, processor
 	}
 	
 	for(var i=0; i<urls.length; i++) {
-		if(this._translate.document && this._translate.document.location
-				&& this._translate.document.location.toString() === urls[i]) {
+		if(translate.document && translate.document.location
+				&& translate.document.location.toString() === urls[i]) {
 			// Document is attempting to reload itself
 			Zotero.debug("Translate: Attempted to load the current document using processDocuments; using loaded document instead");
-			processor(this._translate.document, urls[i]);
+			// This fixes document permissions issues in translation-server when translators call
+			// processDocuments() on the original URL (e.g., AOSIC)
+			// DEBUG: Why is this necessary? (see below also)
+			if (Zotero.isServer) {
+				processor(
+					translate._sandboxManager.wrap(
+						Zotero.Translate.DOMWrapper.unwrap(
+							this._translate.document
+						)
+					),
+					urls[i]
+				);
+			}
+			else {
+				processor(this._translate.document, urls[i]);
+			}
 			urls.splice(i, 1);
 			i--;
 		}
@@ -268,9 +283,13 @@ Zotero.Utilities.Translate.prototype.processDocuments = function(urls, processor
 		if(!processor) return;
 		
 		var newLoc = doc.location;
-		if(Zotero.isFx && (protocol != newLoc.protocol || host != newLoc.host)) {
+		if((Zotero.isFx && !Zotero.isBookmarklet && (protocol != newLoc.protocol || host != newLoc.host))
+				// This fixes document permissions issues in translation-server when translators call
+				// processDocuments() on same-domain URLs (e.g., some of the Code4Lib tests).
+				// DEBUG: Is there a better fix for this?
+				|| Zotero.isServer) {
 			// Cross-site; need to wrap
-			processor(Zotero.Translate.DOMWrapper.wrap(doc), newLoc.toString());
+			processor(translate._sandboxManager.wrap(doc), newLoc.toString());
 		} else {
 			// Not cross-site; no need to wrap
 			processor(doc, newLoc.toString());
@@ -298,9 +317,10 @@ Zotero.Utilities.Translate.prototype.processDocuments = function(urls, processor
 * @param {Function} processor Callback to be executed for each document loaded
 * @param {Function} done Callback to be executed after all documents have been loaded
 * @param {String} responseCharset Character set to force on the response
+* @param {Object} requestHeaders HTTP headers to include with request
 * @return {Boolean} True if the request was sent, or false if the browser is offline
 */
-Zotero.Utilities.Translate.prototype.doGet = function(urls, processor, done, responseCharset) {
+Zotero.Utilities.Translate.prototype.doGet = function(urls, processor, done, responseCharset, requestHeaders) {
 	var callAgain = false,
 		me = this,
 		translate = this._translate;
@@ -332,7 +352,7 @@ Zotero.Utilities.Translate.prototype.doGet = function(urls, processor, done, res
 		} catch(e) {
 			translate.complete(false, e);
 		}
-	}, responseCharset, this._translate.cookieSandbox);
+	}, responseCharset, this._translate.cookieSandbox, requestHeaders);
 }
 
 /**
@@ -353,6 +373,18 @@ Zotero.Utilities.Translate.prototype.doPost = function(url, body, onDone, header
 		}
 	}, headers, responseCharset, translate.cookieSandbox ? translate.cookieSandbox : undefined);
 }
+
+Zotero.Utilities.Translate.prototype.urlToProxy = function(url) {
+	var proxy = this._translate._proxy;
+	if (proxy) return proxy.toProxy(url);
+	return url;
+};
+
+Zotero.Utilities.Translate.prototype.urlToProper = function(url) {
+	var proxy = this._translate._proxy;
+	if (proxy) return proxy.toProper(url);
+	return url;
+};
 
 Zotero.Utilities.Translate.prototype.__exposedProps__ = {"HTTP":"r"};
 for(var j in Zotero.Utilities.Translate.prototype) {

@@ -8,12 +8,9 @@
 <!ENTITY zotero.preferences.prefpane.general "Bendrosios">
 
 <!ENTITY zotero.preferences.userInterface "Naudotojo sąsaja">
-<!ENTITY zotero.preferences.showIn "Zotero paleisdimas:">
-<!ENTITY zotero.preferences.showIn.browserPane "Naršyklės skydelyje">
-<!ENTITY zotero.preferences.showIn.separateTab "Atskiroje kortelėje">
-<!ENTITY zotero.preferences.showIn.appTab "Programos kortelėje">
-<!ENTITY zotero.preferences.statusBarIcon "Ženkliukas būsenos juostoje:">
-<!ENTITY zotero.preferences.statusBarIcon.none "Jokio">
+<!ENTITY zotero.preferences.layout "Išdėstymas">
+<!ENTITY zotero.preferences.layout.standard "Įprastas">
+<!ENTITY zotero.preferences.layout.stacked "Glaustas">
 <!ENTITY zotero.preferences.fontSize "Šrifto dydis:">
 <!ENTITY zotero.preferences.fontSize.small "Mažas">
 <!ENTITY zotero.preferences.fontSize.medium "Vidutinis">
@@ -28,7 +25,7 @@
 <!ENTITY zotero.preferences.zoteroDotOrgVersionHeader "Leisti zotero.org derinti turinį pagal dabartinę Zotero versiją">
 <!ENTITY zotero.preferences.zoteroDotOrgVersionHeader.tooltip "Jei parinktis įgalinta, dabartinė Zotero versija bus automatiškai įtraukta į zotero.org HTTP užklausas.">
 <!ENTITY zotero.preferences.parseRISRefer "Zotero naudoti BibTeX/RIS/Refer failų parsiuntimui">
-<!ENTITY zotero.preferences.automaticSnapshots "Kuriamiems naujiems įrašams automatiškai sukurti nuotraukas">
+<!ENTITY zotero.preferences.automaticSnapshots "Kuriamiems naujiems įrašams automatiškai sukurti tinklalapių momentines kopijas">
 <!ENTITY zotero.preferences.downloadAssociatedFiles "Įrašant įrašus, automatiškai prisegti susijusius PDF dokumentus ir kitus failus">
 <!ENTITY zotero.preferences.automaticTags "Įrašams automatiškai priskirti gaires su raktažodžiais ir temomis">
 <!ENTITY zotero.preferences.trashAutoEmptyDaysPre "Automatiškai šiukšlinės šalinti įrašus, senesnius nei">
@@ -37,9 +34,15 @@
 <!ENTITY zotero.preferences.groups "Grupės">
 <!ENTITY zotero.preferences.groups.whenCopyingInclude "Kopijuojant elementus tarp bibliotekų, įtraukti:">
 <!ENTITY zotero.preferences.groups.childNotes "įrašams priklausančias pastabas">
-<!ENTITY zotero.preferences.groups.childFiles "įrašams priklausančias nuotraukas ir importuotus failus">
+<!ENTITY zotero.preferences.groups.childFiles "įrašams priklausančias tinklalapių momentines kopijas ir importuotus failus">
 <!ENTITY zotero.preferences.groups.childLinks "įrašams priklausančias nuorodas">
 <!ENTITY zotero.preferences.groups.tags "gaires">
+
+<!ENTITY zotero.preferences.feeds "Naujienų kanalai">
+<!ENTITY zotero.preferences.feeds.sorting.label "Rikiavimas:">
+<!ENTITY zotero.preferences.feeds.sorting.newest "Naujausi pradžioje">
+<!ENTITY zotero.preferences.feeds.sorting.oldest "Seniausi pradžioje">
+<!ENTITY zotero.preferences.feeds.feedDefaults "Numatytosios kanalų parinktys">
 
 <!ENTITY zotero.preferences.openurl.caption "OpenURL">
 
@@ -51,12 +54,14 @@
 <!ENTITY zotero.preferences.prefpane.sync "Sinchronizavimas">
 <!ENTITY zotero.preferences.sync.username "Naudotojo vardas:">
 <!ENTITY zotero.preferences.sync.password "Slaptažodis:">
-<!ENTITY zotero.preferences.sync.syncServer "Zotero sinchronizavimo serveris">
+<!ENTITY zotero.preferences.sync.syncServer "Duomenų sinchronizavimas">
+<!ENTITY zotero.preferences.sync.setUpSync "Konfigūruoti sinchronizavimą">
+<!ENTITY zotero.preferences.sync.unlinkAccount "Nebesieti su paskyra...">
 <!ENTITY zotero.preferences.sync.createAccount "Sukurti paskyrą">
 <!ENTITY zotero.preferences.sync.lostPassword "Pamiršote slaptažodį?">
 <!ENTITY zotero.preferences.sync.syncAutomatically "Sinchronizuoti automatiškai">
-<!ENTITY zotero.preferences.sync.syncFullTextContent "Viso tekstinio turinio sinchronizavimas">
-<!ENTITY zotero.preferences.sync.syncFullTextContent.desc "Zotero gali sinchronizuoti visą jūsiškės bibliotekos failų tekstinį turinį su zotero.org ir kitais susietais įrenginiais. Tai Jums leistų greitai pasiekti savus failus kad ir kur bebūtumėte. Jūsų tekstinis turinys nebus viešinamas.">
+<!ENTITY zotero.preferences.sync.syncFullTextContent "Visatekstinio turinio sinchronizavimas">
+<!ENTITY zotero.preferences.sync.syncFullTextContent.desc "Zotero gali sinchronizuoti visą jūsiškės bibliotekos failų visatekstinį turinį su zotero.org ir kitais susietais įrenginiais. Tai Jums leistų greitai pasiekti savus failus kad ir kur bebūtumėte. Jūsų visatekstinis turinys nebus viešinamas.">
 <!ENTITY zotero.preferences.sync.about "Apie sinchronizavimą">
 <!ENTITY zotero.preferences.sync.fileSyncing "Failų sinchronizavimas">
 <!ENTITY zotero.preferences.sync.fileSyncing.url "URL:">
@@ -67,23 +72,27 @@
 <!ENTITY zotero.preferences.sync.fileSyncing.download.onDemand "pagal poreikį">
 <!ENTITY zotero.preferences.sync.fileSyncing.tos1 "Naudodamiesi Zotero saugykla Jūs savaime sutinkate su jos">
 <!ENTITY zotero.preferences.sync.fileSyncing.tos2 "naudojimosi taisyklėmis ir sąlygomis">
+<!ENTITY zotero.preferences.sync.librariesToSync "Sinchronizuotinos bibliotekos">
+<!ENTITY zotero.preferences.sync.librariesToSync.button "Pasirinkti bibliotekas...">
+<!ENTITY zotero.preferences.sync.librariesToSync.sync "Sinchronizuoti">
+<!ENTITY zotero.preferences.sync.librariesToSync.library "Biblioteka">
 <!ENTITY zotero.preferences.sync.reset.warning1 "Tolaiu pateiktos funkcijos skirtos retiems specifiniams atvejams - jų nereikėtų naudoti įprastų nesklandumų sprendimui. Dažniausiai atkūrimas sukelia dar daugiau problemų. Daugiau informacijos rasite ">
 <!ENTITY zotero.preferences.sync.reset.warning2 "atkūrimo sinchronizuojant parinkčių">
 <!ENTITY zotero.preferences.sync.reset.warning3 " puslapyje.">
-<!ENTITY zotero.preferences.sync.reset.fullSync "Visiškas sinchronizavimas su Zotero serveriu">
-<!ENTITY zotero.preferences.sync.reset.fullSync.desc "Apjungti vietinius Zotero duomenis ir esančiuosius sinchronizavimo serveryje, nepaisant sinchronizavimo istorijos.">
+<!ENTITY zotero.preferences.sync.reset.fullSync "Visiškas sinchronizavimas">
+<!ENTITY zotero.preferences.sync.reset.fullSync.desc "Vietinius duomenis apjungti su duomenimis iš serverio, nepaisant sinchronizavimų praeityje.">
 <!ENTITY zotero.preferences.sync.reset.restoreFromServer "Atkurti parsiunčiant iš Zotero serverio">
 <!ENTITY zotero.preferences.sync.reset.restoreFromServer.desc "Išvalyti visus vietinius Zotero duomenis ir parsiųsti duomenis iš sinchronizavimo serverio.">
 <!ENTITY zotero.preferences.sync.reset.restoreToServer "Atkurti perrašant Zotero serverio duomenis">
 <!ENTITY zotero.preferences.sync.reset.restoreToServer.desc "Ištrinti visus serverio duomenis, po to vietinius Zotero duomenis nusiųsti į serverį.">
 <!ENTITY zotero.preferences.sync.reset.resetFileSyncHistory "Perrašyti failų sinchronizavimo žurnalą">
 <!ENTITY zotero.preferences.sync.reset.resetFileSyncHistory.desc "Priverstinai patikrinti saugyklos serverį, ar jame yra visi vietiniai prisegtiniai failai.">
-<!ENTITY zotero.preferences.sync.reset "Nustatyti iš naujo">
-<!ENTITY zotero.preferences.sync.reset.button "Nustatyti iš naujo...">
+<!ENTITY zotero.preferences.sync.reset "Atkūrimas">
+<!ENTITY zotero.preferences.sync.reset.button "Atkurti...">
 
 
 <!ENTITY zotero.preferences.prefpane.search "Paieška">
-<!ENTITY zotero.preferences.search.fulltextCache "Viso teksto podėlis">
+<!ENTITY zotero.preferences.search.fulltextCache "Visatekstinis podėlis">
 <!ENTITY zotero.preferences.search.pdfIndexing "PDF indeksavimas">
 <!ENTITY zotero.preferences.search.indexStats "Indeksavimo statistika">
 
@@ -109,6 +118,7 @@
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "Sritis/kelias">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath.example "(pvz., vikipedija.lt)">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.outputFormat "Išvedimo formatas">
+<!ENTITY zotero.preferences.quickCopy.siteEditor.locale "Kalba">
 <!ENTITY zotero.preferences.quickCopy.dragLimit "Neleisti greitai kopijuoti, jei tempiama daugiau kaip">
 
 <!ENTITY zotero.preferences.prefpane.cite "Citavimas">
@@ -125,8 +135,6 @@
 <!ENTITY zotero.preferences.cite.styles.styleManager.csl "CSL">
 <!ENTITY zotero.preferences.export.getAdditionalStyles "Parsisiųsti papildomų stilių...">
 
-<!ENTITY zotero.preferences.prefpane.keys "Spartieji klavišai">
-
 <!ENTITY zotero.preferences.keys.openZotero "Atverti/užverti Zotero skydelį">
 <!ENTITY zotero.preferences.keys.saveToZotero "Įrašyti į Zotero (ženkliukas adreso juostoje)">
 <!ENTITY zotero.preferences.keys.toggleFullscreen "Įjungti/išungti viso ekrano veikseną">
@@ -134,6 +142,7 @@
 <!ENTITY zotero.preferences.keys.quicksearch "Greita paieška">
 <!ENTITY zotero.preferences.keys.newItem "Sukurti naują įrašą">
 <!ENTITY zotero.preferences.keys.newNote "Sukurti naują pastabą">
+<!ENTITY zotero.preferences.keys.toggleAllRead "Visus naujienų kanalo įrašus pažymėti skaitytais/neskaitytais">
 <!ENTITY zotero.preferences.keys.toggleTagSelector "Rodyti/slėpti gairių parinkiklį">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "Kopijuoti pasirinktų įrašų citavimą į iškarpinę">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "Kopijuoti pasirinktus įrašus į iškarpinę">
@@ -148,6 +157,7 @@
 <!ENTITY zotero.preferences.proxies.desc_after_link ".">
 <!ENTITY zotero.preferences.proxies.transparent "Įgalinti įgaliotojo serverio nukreipimą">
 <!ENTITY zotero.preferences.proxies.autoRecognize "Automatiškai aptikti įgaliotųjų serverių šaltinius">
+<!ENTITY zotero.preferences.proxies.showRedirectNotification "Rodyti perspėjimą kai nukreipiama per proxy serverį">
 <!ENTITY zotero.preferences.proxies.disableByDomain "Uždrauti įgaliotojo serverio nukreipimą, jei mano srities pavadinime yra">
 <!ENTITY zotero.preferences.proxies.configured "Sukonfigūruoti įgaliotieji serveriai">
 <!ENTITY zotero.preferences.proxies.hostname "Serveris">
@@ -162,8 +172,9 @@
 <!ENTITY zotero.preferences.proxies.f_variable "&#37;f - failo vardas (pvz., index.html)">
 <!ENTITY zotero.preferences.proxies.a_variable "&#37;a - bet kas">
 
-<!ENTITY zotero.preferences.prefpane.advanced "Sudėtingiau">
+<!ENTITY zotero.preferences.prefpane.advanced "Kita">
 <!ENTITY zotero.preferences.advanced.filesAndFolders "Failai ir katalogai">
+<!ENTITY zotero.preferences.advanced.keys "Spartieji klavišai">
 
 <!ENTITY zotero.preferences.prefpane.locate "Rasti vietą">
 <!ENTITY zotero.preferences.locate.locateEngineManager "Straipsnių paieškos variklių tvarkytuvė">
@@ -182,6 +193,7 @@
 <!ENTITY zotero.preferences.dataDir.custom "Savitas:">
 <!ENTITY zotero.preferences.dataDir.choose "Pasirinkti...">
 <!ENTITY zotero.preferences.dataDir.reveal "Parodyti duomenų katalogą">
+<!ENTITY zotero.preferences.dataDir.migrate "Migrate To New Default Location…">
 
 <!ENTITY zotero.preferences.attachmentBaseDir.caption "Susietų priedų pagrindinis katalogas">
 <!ENTITY zotero.preferences.attachmentBaseDir.message "Zotero failams, kurie prisegti prie įrašų, naudos santykinius kelius pagrindinio katalogo atžvilgiu, tad failus galėsite pasiekti bet kuriame savo kompiuteryje, žinoma, jei failų struktūra pagrindiniuose kataloguose bus tokia pati.">
@@ -191,9 +203,9 @@
 
 <!ENTITY zotero.preferences.dbMaintenance "Duomenų bazės priežiūra">
 <!ENTITY zotero.preferences.dbMaintenance.integrityCheck "Tikrinti duomenų bazės vientisumą">
-<!ENTITY zotero.preferences.dbMaintenance.resetTranslatorsAndStyles "Atkurti transliatorius ir stilius...">
-<!ENTITY zotero.preferences.dbMaintenance.resetTranslators "Atstatyti transliatorius...">
-<!ENTITY zotero.preferences.dbMaintenance.resetStyles "Atstatyti stilius...">
+<!ENTITY zotero.preferences.dbMaintenance.resetTranslatorsAndStyles "Atkurti pradinius transliatorius ir stilius...">
+<!ENTITY zotero.preferences.dbMaintenance.resetTranslators "Atkurti pradinius transliatorius...">
+<!ENTITY zotero.preferences.dbMaintenance.resetStyles "Atkurti pradinius stilius...">
 
 <!ENTITY zotero.preferences.debugOutputLogging "Derinimo pranešimų žurnalas">
 <!ENTITY zotero.preferences.debugOutputLogging.message "Derinimo pranešimai Zotero programuotojams gali padėti aptikti Zotero nesklandumus. Derinimo pranešimų rašymas į žurnalą gali sulėtinti Zotero darbą, tad šią funkciją siūlome naudoti tik tuomet, jei Zotero programuotojai paprašo pateikti derinimo išvedimą.">
@@ -204,6 +216,6 @@
 <!ENTITY zotero.preferences.debugOutputLogging.submitToServer "Išsiųsti į Zotero serverį">
 
 <!ENTITY zotero.preferences.openAboutConfig "Atverti about:config">
-<!ENTITY zotero.preferences.openCSLEdit "Atverti CSL rengyklę">
-<!ENTITY zotero.preferences.openCSLPreview "Atverti CSL žiūryklę">
+<!ENTITY zotero.preferences.openCSLEdit "Atverti stilių rengyklę">
+<!ENTITY zotero.preferences.openCSLPreview "Stilių peržiūra">
 <!ENTITY zotero.preferences.openAboutMemory "Atverti about:memory">

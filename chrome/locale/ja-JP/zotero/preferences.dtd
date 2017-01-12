@@ -8,12 +8,9 @@
 <!ENTITY zotero.preferences.prefpane.general "一般">
 
 <!ENTITY zotero.preferences.userInterface "ユーザーインターフェース">
-<!ENTITY zotero.preferences.showIn "Zoteroを表示するのは:">
-<!ENTITY zotero.preferences.showIn.browserPane "ブラウザ画面下">
-<!ENTITY zotero.preferences.showIn.separateTab "新しいタブ">
-<!ENTITY zotero.preferences.showIn.appTab "アプリタブ">
-<!ENTITY zotero.preferences.statusBarIcon "ステイタスバーのアイコン:">
-<!ENTITY zotero.preferences.statusBarIcon.none "なし">
+<!ENTITY zotero.preferences.layout "レイアウト:">
+<!ENTITY zotero.preferences.layout.standard "標準">
+<!ENTITY zotero.preferences.layout.stacked "Stacked">
 <!ENTITY zotero.preferences.fontSize "文字サイズ:">
 <!ENTITY zotero.preferences.fontSize.small "小">
 <!ENTITY zotero.preferences.fontSize.medium "中">
@@ -41,6 +38,12 @@
 <!ENTITY zotero.preferences.groups.childLinks "子リンク">
 <!ENTITY zotero.preferences.groups.tags "タグ">
 
+<!ENTITY zotero.preferences.feeds "フィード">
+<!ENTITY zotero.preferences.feeds.sorting.label "並べ替え:">
+<!ENTITY zotero.preferences.feeds.sorting.newest "最新のアイテムを最初に表示">
+<!ENTITY zotero.preferences.feeds.sorting.oldest "最古のアイテムを最初に表示">
+<!ENTITY zotero.preferences.feeds.feedDefaults "デフォルトのフィード">
+
 <!ENTITY zotero.preferences.openurl.caption "OpenURL">
 
 <!ENTITY zotero.preferences.openurl.search "リンク・リゾルバを検索">
@@ -51,7 +54,9 @@
 <!ENTITY zotero.preferences.prefpane.sync "同期">
 <!ENTITY zotero.preferences.sync.username "ユーザー名:">
 <!ENTITY zotero.preferences.sync.password "パスワード:">
-<!ENTITY zotero.preferences.sync.syncServer "Zotero 同期サーバー">
+<!ENTITY zotero.preferences.sync.syncServer "Data Syncing">
+<!ENTITY zotero.preferences.sync.setUpSync "同期の設定">
+<!ENTITY zotero.preferences.sync.unlinkAccount "アカウントを切断する">
 <!ENTITY zotero.preferences.sync.createAccount "アカウントを作成">
 <!ENTITY zotero.preferences.sync.lostPassword "パスワードを忘れましたか？">
 <!ENTITY zotero.preferences.sync.syncAutomatically "自動的に同期">
@@ -67,11 +72,15 @@
 <!ENTITY zotero.preferences.sync.fileSyncing.download.onDemand "ファイルをダウンロードする">
 <!ENTITY zotero.preferences.sync.fileSyncing.tos1 "Zotero ストレジをお使いになると、次の使用許諾条件に同意したことになります。">
 <!ENTITY zotero.preferences.sync.fileSyncing.tos2 "使用許諾条件">
+<!ENTITY zotero.preferences.sync.librariesToSync "Libraries to Sync">
+<!ENTITY zotero.preferences.sync.librariesToSync.button "Choose Libraries...">
+<!ENTITY zotero.preferences.sync.librariesToSync.sync "Sync">
+<!ENTITY zotero.preferences.sync.librariesToSync.library "Library">
 <!ENTITY zotero.preferences.sync.reset.warning1 "次の操作は、稀に起こる特別な状況のためだけのもので、一般的な問題解決に用いられるべきではありません。多くの場合、リセットすることで更なる問題を引き起こします。以下をご参照ください。">
 <!ENTITY zotero.preferences.sync.reset.warning2 "同期リセットの設定">
 <!ENTITY zotero.preferences.sync.reset.warning3 "により詳しい情報があります。">
-<!ENTITY zotero.preferences.sync.reset.fullSync "Zotero サーバと完全に同期（シンク）させる">
-<!ENTITY zotero.preferences.sync.reset.fullSync.desc "同期の履歴を無視し、ローカル（手元）の Zotero データと同期サーバのデータを融合する。">
+<!ENTITY zotero.preferences.sync.reset.fullSync "完全に同期">
+<!ENTITY zotero.preferences.sync.reset.fullSync.desc "ローカルのデータをサーバーからのデータと統合し、同期の履歴は無視する">
 <!ENTITY zotero.preferences.sync.reset.restoreFromServer "Zotero サーバーから復元（リストア）する">
 <!ENTITY zotero.preferences.sync.reset.restoreFromServer.desc "ローカル（手元）の Zotero データを全て消去して、同期サーバのデータで復元する。">
 <!ENTITY zotero.preferences.sync.reset.restoreToServer "Zotero サーバのデータに復元する。">
@@ -109,6 +118,7 @@
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath "ドメイン／パス">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.domainPath.example "（例：wikipedia.org）">
 <!ENTITY zotero.preferences.quickCopy.siteEditor.outputFormat "出力形式">
+<!ENTITY zotero.preferences.quickCopy.siteEditor.locale "言語">
 <!ENTITY zotero.preferences.quickCopy.dragLimit "アイテム数が右の値より大きい時はドラッグ時のクイックコピーを無効化する:">
 
 <!ENTITY zotero.preferences.prefpane.cite "引用">
@@ -125,8 +135,6 @@
 <!ENTITY zotero.preferences.cite.styles.styleManager.csl "CSL">
 <!ENTITY zotero.preferences.export.getAdditionalStyles "他の引用スタイルを入手する...">
 
-<!ENTITY zotero.preferences.prefpane.keys "ショートカットキー">
-
 <!ENTITY zotero.preferences.keys.openZotero "Zotero 画面を開く／閉じる">
 <!ENTITY zotero.preferences.keys.saveToZotero "Zotero に保存する (アドレスバーのアイコン)">
 <!ENTITY zotero.preferences.keys.toggleFullscreen "全画面表示の切り替え">
@@ -134,6 +142,7 @@
 <!ENTITY zotero.preferences.keys.quicksearch "簡易検索">
 <!ENTITY zotero.preferences.keys.newItem "新しいアイテムを作成する">
 <!ENTITY zotero.preferences.keys.newNote "新しいメモを作成する">
+<!ENTITY zotero.preferences.keys.toggleAllRead "すべてのフィードのアイテムを既読/未読にする">
 <!ENTITY zotero.preferences.keys.toggleTagSelector "タグ選択ボックスを表示する／隠す">
 <!ENTITY zotero.preferences.keys.copySelectedItemCitationsToClipboard "選択されたアイテムの出典表記をクリップボードにコピー">
 <!ENTITY zotero.preferences.keys.copySelectedItemsToClipboard "選択されたアイテムの参考文献目録をクリップボードにコピー">
@@ -148,6 +157,7 @@
 <!ENTITY zotero.preferences.proxies.desc_after_link "をご覧ください。">
 <!ENTITY zotero.preferences.proxies.transparent "プロキシ転送を有効化する">
 <!ENTITY zotero.preferences.proxies.autoRecognize "自動的にプロキシ・リソースを認識する">
+<!ENTITY zotero.preferences.proxies.showRedirectNotification "プロキシを通じて転送するときに通知を表示する">
 <!ENTITY zotero.preferences.proxies.disableByDomain "私のドメイン名が次を含むときは、プロキシ転送を無効化する: ">
 <!ENTITY zotero.preferences.proxies.configured "設定済みのプロキシ">
 <!ENTITY zotero.preferences.proxies.hostname "ホスト名">
@@ -164,6 +174,7 @@
 
 <!ENTITY zotero.preferences.prefpane.advanced "詳細">
 <!ENTITY zotero.preferences.advanced.filesAndFolders "ファイルとフォルダ">
+<!ENTITY zotero.preferences.advanced.keys "ショートカット">
 
 <!ENTITY zotero.preferences.prefpane.locate "所在確認">
 <!ENTITY zotero.preferences.locate.locateEngineManager "所在確認エンジンの管理">
@@ -182,6 +193,7 @@
 <!ENTITY zotero.preferences.dataDir.custom "個人設定:">
 <!ENTITY zotero.preferences.dataDir.choose "選択する...">
 <!ENTITY zotero.preferences.dataDir.reveal "データ・ディレクトリを表示する">
+<!ENTITY zotero.preferences.dataDir.migrate "Migrate To New Default Location…">
 
 <!ENTITY zotero.preferences.attachmentBaseDir.caption "リンク付き添付ファイルの基本ディレクトリ">
 <!ENTITY zotero.preferences.attachmentBaseDir.message "Zotero は、基本ディレクトリの中のリンク付き添付ファイルについて相対パスを使用します。これにより、基本ディレクトリのファイル構造が同じである限り、異なるコンピューター上のファイルへのアクセスが可能になります。">
@@ -204,6 +216,6 @@
 <!ENTITY zotero.preferences.debugOutputLogging.submitToServer "Zotero サーバに報告する">
 
 <!ENTITY zotero.preferences.openAboutConfig "about:config を開く">
-<!ENTITY zotero.preferences.openCSLEdit "CSL エディタを開く">
-<!ENTITY zotero.preferences.openCSLPreview "CSL プレビューを開く">
+<!ENTITY zotero.preferences.openCSLEdit "スタイルエディタを開く">
+<!ENTITY zotero.preferences.openCSLPreview "スタイルのプレビューを開く">
 <!ENTITY zotero.preferences.openAboutMemory "about:memory 画面を開く">

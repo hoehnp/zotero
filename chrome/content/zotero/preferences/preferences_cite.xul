@@ -39,17 +39,10 @@
 		
 		<tabbox>
 			<tabs>
-				<tab label="&zotero.preferences.cite.wordProcessors;"/>
-				<tab label="&zotero.preferences.cite.styles;"/>
+				<tab id="styles-tab" label="&zotero.preferences.cite.styles;"/>
+				<tab id="wordProcessors-tab" label="&zotero.preferences.cite.wordProcessors;"/>
 			</tabs>
 			<tabpanels>
-				<tabpanel orient="vertical" id="wordProcessors">
-					<label id="wordProcessors-noWordProcessorPluginsInstalled" width="45em" hidden="true">
-							&zotero.preferences.cite.wordProcessors.noWordProcessorPluginsInstalled;
-					</label>
-					<checkbox label="&zotero.preferences.cite.wordProcessors.useClassicAddCitationDialog;" preference="pref-cite-useClassicAddCitationDialog"/>
-					<label id="wordProcessors-getWordProcessorPlugins" class="zotero-text-link" href="&zotero.preferences.cite.wordProcessors.getPlugins.url;" value="&zotero.preferences.cite.wordProcessors.getPlugins;"/>
-				</tabpanel>
 				<tabpanel orient="vertical" id="styles">
 					<groupbox flex="1">
 						<caption label="&zotero.preferences.cite.styles.styleManager;"/>
@@ -58,17 +51,19 @@
 								onselect="document.getElementById('styleManager-delete').disabled = undefined"
 								onkeypress="if (event.keyCode == event.DOM_VK_DELETE) { Zotero_Preferences.Cite.deleteSelectedStyle(); }">
 							<treecols>
-								<treecol id="styleManager-title" label="&zotero.preferences.cite.styles.styleManager.title;" flex="3"/>
-								<treecol id="styleManager-updated" label="&zotero.preferences.cite.styles.styleManager.updated;" flex="1"/>
-								<treecol id="styleManager-csl" label="&zotero.preferences.cite.styles.styleManager.csl;"/>
+								<treecol id="styleManager-title" label="&zotero.preferences.cite.styles.styleManager.title;" flex="1"/>
+								<treecol id="styleManager-updated" label="&zotero.preferences.cite.styles.styleManager.updated;"/>
 							</treecols>
 							<treechildren id="styleManager-rows"/>
 						</tree>
 						<separator class="thin"/>
 						<hbox align="center" flex="1" height="40">
-							<label class="zotero-text-link" href="http://www.zotero.org/styles/" value="&zotero.preferences.export.getAdditionalStyles;" flex="1"/>
-							<button disabled="true" id="styleManager-delete" label="-" onclick="Zotero_Preferences.Cite.deleteStyle()"/>
-							<button label="+" onclick="Zotero_Preferences.Cite.addStyle()"/>
+							<label class="zotero-text-link"
+									value="&zotero.preferences.export.getAdditionalStyles;" flex="1"
+									onclick="Zotero_Preferences.Cite.openStylesPage(); event.preventDefault()"/>
+							<button disabled="true" id="styleManager-delete" label="-"
+								oncommand="Zotero_Preferences.Cite.deleteStyle()"/>
+							<button label="+" oncommand="Zotero_Preferences.Cite.addStyle()"/>
 						</hbox>
 					</groupbox>
 					
@@ -81,6 +76,13 @@
 							&zotero.preferences.export.citePaperJournalArticleURL.description;
 						</label>
 					</groupbox>
+				</tabpanel>
+				<tabpanel orient="vertical" id="wordProcessors">
+					<label id="wordProcessors-noWordProcessorPluginsInstalled" width="45em" hidden="true">
+							&zotero.preferences.cite.wordProcessors.noWordProcessorPluginsInstalled;
+					</label>
+					<checkbox label="&zotero.preferences.cite.wordProcessors.useClassicAddCitationDialog;" preference="pref-cite-useClassicAddCitationDialog"/>
+					<label id="wordProcessors-getWordProcessorPlugins" class="zotero-text-link" href="&zotero.preferences.cite.wordProcessors.getPlugins.url;" value="&zotero.preferences.cite.wordProcessors.getPlugins;"/>
 				</tabpanel>
 			</tabpanels>
 		</tabbox>

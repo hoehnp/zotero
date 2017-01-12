@@ -23,8 +23,7 @@
     ***** END LICENSE BLOCK *****
 */
 
-// Enumeration of types of translators
-const TRANSLATOR_TYPES = {"import":1, "export":2, "web":4, "search":8};
+"use strict";
 
 /**
  * Singleton to handle loading and caching of translators
@@ -33,87 +32,164 @@ const TRANSLATOR_TYPES = {"import":1, "export":2, "web":4, "search":8};
 Zotero.Translators = new function() {
 	var _cache, _translators;
 	var _initialized = false;
+	var _initializationDeferred = false;
 	
 	/**
-	 * Initializes translator cache, loading all relevant translators into memory
+	 * Initializes translator cache, loading all translator metadata into memory
+	 *
+	 * @param {Object} [options.metadataCache] - Translator metadata keyed by filename, if already
+	 *     available (e.g., in updateBundledFiles()), to avoid unnecesary file reads
 	 */
-	this.reinit = Q.async(function() {
-		var start = (new Date()).getTime();
-		var transactionStarted = false;
-		
-		_cache = {"import":[], "export":[], "web":[], "search":[]};
-		_translators = {};
-		
-		var dbCacheResults = yield Zotero.DB.queryAsync("SELECT leafName, translatorJSON, "+
-			"code, lastModifiedTime FROM translatorCache");
-		var dbCache = {};
-		for each(var cacheEntry in dbCacheResults) {
-			dbCache[cacheEntry.leafName] = cacheEntry;
+	this.init = Zotero.Promise.coroutine(function* (options = {}) {
+		if (_initializationDeferred && !options.reinit) {
+			return _initializationDeferred.promise;
 		}
 		
-		var i = 0;
+		// Wait until bundled files have been updated, except when this is called by the schema update
+		// code itself
+		if (!options.fromSchemaUpdate) {
+			yield Zotero.Schema.schemaUpdatePromise;
+		}
+		
+		_initializationDeferred = Zotero.Promise.defer();
+		
+		Zotero.debug("Initializing translators");
+		var start = new Date;
+		
+		_cache = {"import":[], "export":[], "web":[], "webWithTargetAll":[], "search":[]};
+		_translators = {};
+		
+		var sql = "SELECT fileName, metadataJSON, lastModifiedTime FROM translatorCache";
+		var dbCacheResults = yield Zotero.DB.queryAsync(sql);
+		var dbCache = {};
+		for (let i = 0; i < dbCacheResults.length; i++) {
+			let entry = dbCacheResults[i];
+			dbCache[entry.fileName] = entry;
+		}
+		
+		var numCached = 0;
 		var filesInCache = {};
-		var contents = Zotero.getTranslatorsDirectory().directoryEntries;
-		while(contents.hasMoreElements()) {
-			var file = contents.getNext().QueryInterface(Components.interfaces.nsIFile);
-			var leafName = file.leafName;
-			if(!(/^[^.].*\.js$/.test(leafName))) continue;
-			var lastModifiedTime = file.lastModifiedTime;
-			
-			var dbCacheEntry = false;
-			if(dbCache[leafName]) {
-				filesInCache[leafName] = true;
-				if(dbCache[leafName].lastModifiedTime == lastModifiedTime) {
-					dbCacheEntry = dbCache[file.leafName];
-				}
-			}
-			
-			if(dbCacheEntry) {
-				// get JSON from cache if possible
-				var translator = Zotero.Translators.load(file, dbCacheEntry.translatorJSON, dbCacheEntry.code);
-				filesInCache[leafName] = true;
-			} else {
-				// otherwise, load from file
-				var translator = yield Zotero.Translators.loadFromDisk(file);
-			}
-			
-			if(translator.translatorID) {
-				if(_translators[translator.translatorID]) {
-					// same translator is already cached
-					translator.logError('Translator with ID '+
-						translator.translatorID+' already loaded from "'+
-						_translators[translator.translatorID].file.leafName+'"');
-				} else {
-					// add to cache
-					_translators[translator.translatorID] = translator;
-					for(var type in TRANSLATOR_TYPES) {
-						if(translator.translatorType & TRANSLATOR_TYPES[type]) {
-							_cache[type].push(translator);
+		var translatorsDir = Zotero.getTranslatorsDirectory().path;
+		var iterator = new OS.File.DirectoryIterator(translatorsDir);
+		try {
+			while (true) {
+				let entries = yield iterator.nextBatch(5); // TODO: adjust as necessary
+				if (!entries.length) break;
+				for (let i = 0; i < entries.length; i++) {
+					let entry = entries[i];
+					let path = entry.path;
+					let fileName = entry.name;
+					
+					if (!(/^[^.].*\.js$/.test(fileName))) continue;
+					
+					let lastModifiedTime;
+					if ('winLastWriteDate' in entry) {
+						lastModifiedTime = entry.winLastWriteDate.getTime();
+					}
+					else {
+						lastModifiedTime = (yield OS.File.stat(path)).lastModificationDate.getTime();
+					}
+					
+					// Check passed cache for metadata
+					let memCacheJSON = false;
+					if (options.metadataCache && options.metadataCache[fileName]) {
+						memCacheJSON = options.metadataCache[fileName];
+					}
+					
+					// Check DB cache
+					let dbCacheEntry = false;
+					if (dbCache[fileName]) {
+						filesInCache[fileName] = true;
+						if (dbCache[fileName].lastModifiedTime == lastModifiedTime) {
+							dbCacheEntry = dbCache[fileName];
 						}
 					}
 					
-					if(!dbCacheEntry) {
-						var code = yield translator.getCode();
+					// Get JSON from cache if possible
+					if (memCacheJSON || dbCacheEntry) {
+						var translator = Zotero.Translators.load(
+							memCacheJSON || dbCacheEntry.metadataJSON, path
+						);
+					}
+					// Otherwise, load from file
+					else {
+						try {
+							var translator = yield Zotero.Translators.loadFromFile(path);
+						}
+						catch (e) {
+							Zotero.logError(e);
+							
+							// If translator file is invalid, delete it and clear the cache entry
+							// so that the translator is reinstalled the next time it's updated.
+							//
+							// TODO: Reinstall the correct translator immediately
+							yield OS.File.remove(path);
+							let sql = "DELETE FROM translatorCache WHERE fileName=?";
+							yield Zotero.DB.queryAsync(sql, fileName);
+							continue;
+						}
+					}
+					
+					// When can this happen?
+					if (!translator.translatorID) {
+						Zotero.debug("Translator ID for " + path + " not found");
+						continue;
+					}
+					
+					// Check if there's already a cached translator with the same id
+					if (_translators[translator.translatorID]) {
+						let existingTranslator = _translators[translator.translatorID];
+						// If cached translator is older, delete it
+						if (existingTranslator.lastUpdated < translator.lastUpdated) {
+							translator.logError("Deleting older translator "
+								+ existingTranslator.fileName + " with same ID as "
+								+ translator.fileName);
+							yield OS.File.remove(existingTranslator.path);
+							delete _translators[translator.translatorID];
+						}
+						// If cached translator is newer or the same, delete the current one
+						else {
+							translator.logError("Translator " + existingTranslator.fileName
+								+ " with same ID is already loaded -- deleting "
+								+ translator.fileName);
+							yield OS.File.remove(translator.path);
+							continue;
+						}
+					}
+					
+					// add to cache
+					_translators[translator.translatorID] = translator;
+					for (let type in TRANSLATOR_TYPES) {
+						if (translator.translatorType & TRANSLATOR_TYPES[type]) {
+							_cache[type].push(translator);
+							if ((translator.translatorType & TRANSLATOR_TYPES.web) && translator.targetAll) {
+								_cache.webWithTargetAll.push(translator);
+							}
+						}
+					}
+					
+					if (!dbCacheEntry) {
 						yield Zotero.Translators.cacheInDB(
-							leafName,
+							fileName,
 							translator.serialize(TRANSLATOR_REQUIRED_PROPERTIES.
-								                 concat(TRANSLATOR_OPTIONAL_PROPERTIES)),
-							translator.cacheCode ? translator.code : null,
+												 concat(TRANSLATOR_OPTIONAL_PROPERTIES)),
 							lastModifiedTime
 						);
-						delete translator.metadataString;
 					}
+					
+					numCached++;
 				}
 			}
-			
-			i++;
+		}
+		finally {
+			iterator.close();
 		}
 		
-		// Remove translators from DB as necessary
-		for(var leafName in dbCache) {
-			if(!filesInCache[leafName]) {
+		// Remove translators from DB cache if no file
+		for (let fileName in dbCache) {
+			if (!filesInCache[fileName]) {
 				yield Zotero.DB.queryAsync(
-					"DELETE FROM translatorCache WHERE leafName = ?", [leafName]
+					"DELETE FROM translatorCache WHERE fileName = ?", fileName
 				);
 			}
 		}
@@ -133,56 +209,67 @@ Zotero.Translators = new function() {
 			_cache[type].sort(cmp);
 		}
 		
-		Zotero.debug("Cached "+i+" translators in "+((new Date()).getTime() - start)+" ms");
+		_initializationDeferred.resolve();
+		_initialized = true;
+		
+		Zotero.debug("Cached " + numCached + " translators in " + ((new Date) - start) + " ms");
 	});
-	this.init = Zotero.lazy(this.reinit);
-
+	
+	
+	this.reinit = function (options = {}) {
+		return this.init(Object.assign({}, options, { reinit: true }));
+	};
+	
+	
 	/**
 	 * Loads a translator from JSON, with optional code
+	 *
+	 * @param {String|Object} json - Metadata JSON
+	 * @param {String} path
+	 * @param {String} [code]
 	 */
-	this.load = function(file, json, code) {
-		var info = JSON.parse(json);
-		info.file = file;
+	this.load = function (json, path, code) {
+		var info = typeof json == 'string' ? JSON.parse(json) : json;
+		info.path = path;
 		info.code = code;
 		return new Zotero.Translator(info);
 	}
 
 	/**
 	 * Loads a translator from the disk
+	 *
+	 * @param {String} file - Path to translator file
 	 */
-	this.loadFromDisk = function(file) {
+	this.loadFromFile = function(path) {
 		const infoRe = /^\s*{[\S\s]*?}\s*?[\r\n]/;
-		return Zotero.File.getContentsAsync(file)
+		return Zotero.File.getContentsAsync(path)
 		.then(function(source) {
-			return Zotero.Translators.load(file, infoRe.exec(source)[0], source);
+			return Zotero.Translators.load(infoRe.exec(source)[0], path, source);
 		})
-		.fail(function() {
-			throw "Invalid or missing translator metadata JSON object in " + file.leafName;
+		.catch(function() {
+			throw "Invalid or missing translator metadata JSON object in " + OS.Path.basename(path);
 		});
 	}
 	
 	/**
 	 * Gets the translator that corresponds to a given ID
+	 *
 	 * @param {String} id The ID of the translator
-	 * @param {Function} [callback] An optional callback to be executed when translators have been
-	 *                              retrieved. If no callback is specified, translators are
-	 *                              returned.
 	 */
 	this.get = function(id) {
-		return this.init().then(function() {
-			return  _translators[id] ? _translators[id] : false
-		});
+		if (!_initialized) {
+			throw new Zotero.Exception.UnloadedDataException("Translators not yet loaded", 'translators');
+		}
+		return  _translators[id] ? _translators[id] : false
 	}
 	
 	/**
 	 * Gets all translators for a specific type of translation
+	 *
 	 * @param {String} type The type of translators to get (import, export, web, or search)
-	 * @param {Function} [callback] An optional callback to be executed when translators have been
-	 *                              retrieved. If no callback is specified, translators are
-	 *                              returned.
 	 */
 	this.getAllForType = function(type) {
-		return this.init().then(function() {
+		return this.init().then(function () {
 			return _cache[type].slice();
 		});
 	}
@@ -191,96 +278,106 @@ Zotero.Translators = new function() {
 	 * Gets all translators for a specific type of translation
 	 */
 	this.getAll = function() {
-		return this.init().then(function() {
-			return [translator for each(translator in _translators)];
+		return this.init().then(function () {
+			return Object.keys(_translators).map(id => _translators[id]);
 		});
 	}
 	
 	/**
 	 * Gets web translators for a specific location
 	 * @param {String} uri The URI for which to look for translators
-	 * @param {Function} [callback] An optional callback to be executed when translators have been
-	 *                              retrieved. If no callback is specified, translators are
-	 *                              returned. The callback is passed a set of functions for
-	 *                              converting URLs from proper to proxied forms as the second
-	 *                              argument.
+	 * @param {String} rootUri The root URI of the page, different from `uri` if running in an iframe
 	 */
-	this.getWebTranslatorsForLocation = function(uri, callback) {
-		return this.getAllForType("web").then(function(allTranslators) {
+	this.getWebTranslatorsForLocation = function(URI, rootURI) {
+		var isFrame = URI !== rootURI;
+		var type = isFrame ? "webWithTargetAll" : "web";
+		
+		return this.getAllForType(type).then(function(allTranslators) {
 			var potentialTranslators = [];
+			var proxies = [];
 			
-			var properHosts = [];
-			var proxyHosts = [];
+			var rootSearchURIs = Zotero.Proxies.getPotentialProxies(rootURI);
+			var frameSearchURIs = isFrame ? Zotero.Proxies.getPotentialProxies(URI) : rootSearchURIs;
 			
-			var properURI = Zotero.Proxies.proxyToProper(uri);
-			var knownProxy = properURI !== uri;
-			if(knownProxy) {
-				// if we know this proxy, just use the proper URI for detection
-				var searchURIs = [properURI];
-			} else {
-				var searchURIs = [uri];
-				
-				// if there is a subdomain that is also a TLD, also test against URI with the domain
-				// dropped after the TLD
-				// (i.e., www.nature.com.mutex.gmu.edu => www.nature.com)
-				var m = /^(https?:\/\/)([^\/]+)/i.exec(uri);
-				if(m) {
-					// First, drop the 0- if it exists (this is an III invention)
-					var host = m[2];
-					if(host.substr(0, 2) === "0-") host = host.substr(2);
-					var hostnames = host.split(".");
-					for(var i=1; i<hostnames.length-2; i++) {
-						if(TLDS[hostnames[i].toLowerCase()]) {
-							var properHost = hostnames.slice(0, i+1).join(".");
-							searchURIs.push(m[1]+properHost+uri.substr(m[0].length));
-							properHosts.push(properHost);
-							proxyHosts.push(hostnames.slice(i+1).join("."));
+			Zotero.debug("Translators: Looking for translators for "+Object.keys(frameSearchURIs).join(', '));
+			
+			for (let translator of allTranslators) {
+				rootURIsLoop:
+				for (let rootSearchURI in rootSearchURIs) {
+					let isGeneric = !translator.webRegexp.root;
+					
+					let rootURIMatches = isGeneric || rootSearchURI.length < 8192 && translator.webRegexp.root.test(rootSearchURI);
+					if (translator.webRegexp.all && rootURIMatches) {
+						for (let frameSearchURI in frameSearchURIs) {
+							let frameURIMatches = frameSearchURI.length < 8192 && translator.webRegexp.all.test(frameSearchURI);
+								
+							if (frameURIMatches) {
+								potentialTranslators.push(translator);
+								proxies.push(frameSearchURIs[frameSearchURI]);
+								// prevent adding the translator multiple times
+								break rootURIsLoop;
+							}
 						}
 					}
-				}
-			}
-			
-			Zotero.debug("Translators: Looking for translators for "+searchURIs.join(", "));
-			
-			var converterFunctions = [];
-			for(var i=0; i<allTranslators.length; i++) {
-				for(var j=0; j<searchURIs.length; j++) {
-					if((!allTranslators[i].webRegexp
-							&& allTranslators[i].runMode === Zotero.Translator.RUN_MODE_IN_BROWSER)
-							|| (uri.length < 8192 && allTranslators[i].webRegexp.test(searchURIs[j]))) {
-						// add translator to list
-						potentialTranslators.push(allTranslators[i]);
-						
-						if(j === 0) {
-							if(knownProxy) {
-								converterFunctions.push(Zotero.Proxies.properToProxy);
-							} else {
-								converterFunctions.push(null);
-							}
-						} else {
-							converterFunctions.push(new function() {
-								var re = new RegExp('^https?://(?:[^/]\\.)?'+Zotero.Utilities.quotemeta(properHosts[j-1]), "gi");
-								var proxyHost = proxyHosts[j-1].replace(/\$/g, "$$$$");
-								return function(uri) { return uri.replace(re, "$&."+proxyHost) };
-							});
-						}
-						
-						// don't add translator more than once
+					else if(!isFrame && (isGeneric || rootURIMatches)) {
+						potentialTranslators.push(translator);
+						proxies.push(rootSearchURIs[rootSearchURI]);
 						break;
 					}
 				}
 			}
 			
-			return [potentialTranslators, converterFunctions];
-		});
-	}
+			return [potentialTranslators, proxies];
+		}.bind(this));
+	},
+
+	/**
+	 * Get the array of searchURIs and related proxy converter functions
+	 * 
+	 * @param {String} URI to get searchURIs and converterFunctions for
+	 */
+	this.getSearchURIs = function(URI) {
+		var properURI = Zotero.Proxies.proxyToProper(URI);
+		if (properURI !== URI) {
+			// if we know this proxy, just use the proper URI for detection
+			let obj = {};
+			obj[properURI] = Zotero.Proxies.properToProxy;
+			return obj;
+		}
+			
+		var searchURIs = {};
+		searchURIs[URI] = null;
+		
+		// if there is a subdomain that is also a TLD, also test against URI with the domain
+		// dropped after the TLD
+		// (i.e., www.nature.com.mutex.gmu.edu => www.nature.com)
+		var m = /^(https?:\/\/)([^\/]+)/i.exec(URI);
+		if (m) {
+			// First, drop the 0- if it exists (this is an III invention)
+			var host = m[2];
+			if(host.substr(0, 2) === "0-") host = host.substr(2);
+			var hostnames = host.split(".");
+			for (var i=1; i<hostnames.length-2; i++) {
+				if (TLDS[hostnames[i].toLowerCase()]) {
+					var properHost = hostnames.slice(0, i+1).join(".");
+					searchURIs[m[1]+properHost+URI.substr(m[0].length)] = new function() {
+						var re = new RegExp('^https?://(?:[^/]+\\.)?'+Zotero.Utilities.quotemeta(properHost)+'(?=/)', "gi");
+						var proxyHost = hostnames.slice(i+1).join(".").replace(/\$/g, "$$$$");
+						return function(uri) { return uri.replace(re, "$&."+proxyHost) };
+					};
+				}
+			}
+		}
+		return searchURIs;
+	},
 	
 	/**
 	 * Gets import translators for a specific location
 	 * @param {String} location The location for which to look for translators
 	 * @param {Function} [callback] An optional callback to be executed when translators have been
-	 *                              retrieved. If no callback is specified, translators are
-	 *                              returned.
+	 *                              retrieved
+	 * @return {Promise<Zotero.Translator[]|true>} - An array of translators if no callback is specified;
+	 *     otherwise true
 	 */
 	this.getImportTranslatorsForLocation = function(location, callback) {	
 		return Zotero.Translators.getAllForType("import").then(function(allTranslators) {
@@ -336,15 +433,15 @@ Zotero.Translators = new function() {
 	 * @param	{String}		code
 	 * @return	{Promise<nsIFile>}
 	 */
-	this.save = function(metadata, code) {
+	this.save = Zotero.Promise.coroutine(function* (metadata, code) {
 		if (!metadata.translatorID) {
 			throw ("metadata.translatorID not provided in Zotero.Translators.save()");
 		}
 		
 		if (!metadata.translatorType) {
 			var found = false;
-			for each(var type in TRANSLATOR_TYPES) {
-				if (metadata.translatorType & type) {
+			for (let type in TRANSLATOR_TYPES) {
+				if (metadata.translatorType & TRANSLATOR_TYPES[type]) {
 					found = true;
 					break;
 				}
@@ -355,26 +452,25 @@ Zotero.Translators = new function() {
 		}
 		
 		if (!metadata.label) {
-			throw ("metadata.label not provided in Zotero.Translators.save()");
+			throw new Error("metadata.label not provided");
 		}
 		
 		if (!metadata.priority) {
-			throw ("metadata.priority not provided in Zotero.Translators.save()");
+			throw new Error("metadata.priority not provided");
 		}
 		
 		if (!metadata.lastUpdated) {
-			throw ("metadata.lastUpdated not provided in Zotero.Translators.save()");
+			throw new Error("metadata.lastUpdated not provided");
 		}
 		
 		if (!code) {
-			throw ("code not provided in Zotero.Translators.save()");
+			throw new Error("code not provided");
 		}
 		
 		var fileName = Zotero.Translators.getFileNameFromLabel(
 			metadata.label, metadata.translatorID
 		);
-		var destFile = Zotero.getTranslatorsDirectory();
-		destFile.append(fileName);
+		var destFile = OS.Path.join(Zotero.getTranslatorsDirectory().path, fileName);
 		
 		// JSON.stringify has the benefit of indenting JSON
 		var metadataJSON = JSON.stringify(metadata, null, "\t");
@@ -382,43 +478,27 @@ Zotero.Translators = new function() {
 		var str = metadataJSON + "\n\n" + code,
 			translator;
 		
-		return Zotero.Translators.get(metadata.translatorID)
-		.then(function(gTranslator) {
-			translator = gTranslator;
-			var sameFile = translator && destFile.equals(translator.file);
-			if (sameFile) return;
-			
-			return Q(OS.File.exists(destFile.path))
-			.then(function (exists) {
-				if (exists) {
-					var msg = "Overwriting translator with same filename '"
-						+ fileName + "'";
-					Zotero.debug(msg, 1);
-					Zotero.debug(metadata, 1);
-					Components.utils.reportError(msg);
-				}
-			});
-		})
-		.then(function () {
-			if (!translator) return;
-			
-			return Q(OS.File.exists(translator.file.path))
-			.then(function (exists) {
-				translator.file.remove(false);
-			});
-		})
-		.then(function () {
-			Zotero.debug("Saving translator '" + metadata.label + "'");
-			Zotero.debug(str);
-			return Zotero.File.putContentsAsync(destFile, str)
-			.thenResolve(destFile);
-		});
-	}
+		var translator = Zotero.Translators.get(metadata.translatorID);
+		var sameFile = translator && destFile == translator.path;
+		
+		var exists = yield OS.File.exists(destFile);
+		if (!sameFile && exists) {
+			var msg = "Overwriting translator with same filename '"
+				+ fileName + "'";
+			Zotero.debug(msg, 1);
+			Zotero.debug(metadata, 1);
+			Components.utils.reportError(msg);
+		}
+		
+		Zotero.debug("Saving translator '" + metadata.label + "'");
+		Zotero.debug(metadata);
+		return Zotero.File.putContentsAsync(destFile, str).return(destFile);
+	});
 	
-	this.cacheInDB = function(fileName, metadataJSON, code, lastModifiedTime) {
+	this.cacheInDB = function(fileName, metadataJSON, lastModifiedTime) {
 		return Zotero.DB.queryAsync(
-			"REPLACE INTO translatorCache VALUES (?, ?, ?, ?)",
-			[fileName, metadataJSON, code, lastModifiedTime]
+			"REPLACE INTO translatorCache VALUES (?, ?, ?)",
+			[fileName, JSON.stringify(metadataJSON), lastModifiedTime]
 		);
 	}
 }

@@ -23,8 +23,233 @@
     ***** END LICENSE BLOCK *****
 */
 
-Zotero.LibraryTreeView = function () {};
+Zotero.LibraryTreeView = function () {
+	this._initialized = false;
+	this._listeners = {
+		load: [],
+		select: []
+	};
+	this._rows = [];
+	this._rowMap = {};
+	
+	this.id = Zotero.Utilities.randomString();
+	Zotero.debug("Creating " + this.type + "s view with id " + this.id);
+};
+
 Zotero.LibraryTreeView.prototype = {
+	get initialized() {
+		return this._initialized;
+	},
+	
+	addEventListener: function(event, listener) {
+		if (event == 'load') {
+			// If already initialized run now
+			if (this._initialized) {
+				listener.call(this);
+			}
+			else {
+				this._listeners[event].push(listener);
+			}
+		}
+		else {
+			if (!this._listeners[event]) {
+				this._listeners[event] = [];
+			}
+			this._listeners[event].push(listener);
+		}
+	},
+	
+	
+	_runListeners: Zotero.Promise.coroutine(function* (event) {
+		if (!this._listeners[event]) return;
+		var listener;
+		while (listener = this._listeners[event].shift()) {
+			yield Zotero.Promise.resolve(listener.call(this));
+		}
+	}),
+	
+	
+	/**
+	 * Return a reference to the tree row at a given row
+	 *
+	 * @return {Zotero.CollectionTreeRow|Zotero.ItemTreeRow}
+	 */
+	getRow: function(row) {
+		return this._rows[row];
+	},
+	
+	
+	/**
+	 * Return the index of the row with a given ID (e.g., "C123" for collection 123)
+	 *
+	 * @param {String} - Row id
+	 * @return {Integer|false}
+	 */
+	getRowIndexByID: function (id) {
+		var type = "";
+		if (this.type != 'item') {
+			var type = id[0];
+			id = ('' + id).substr(1);
+		}
+		return this._rowMap[type + id] !== undefined ? this._rowMap[type + id] : false;
+	},
+	
+	
+	/**
+	 * Return an object describing the current scroll position to restore after changes
+	 *
+	 * @return {Object|Boolean} - Object with .id (a treeViewID) and .offset, or false if no rows
+	 */
+	_saveScrollPosition: function() {
+		var treebox = this._treebox;
+		var first = treebox.getFirstVisibleRow();
+		if (!first) {
+			return false;
+		}
+		var last = treebox.getLastVisibleRow();
+		var firstSelected = null;
+		for (let i = first; i <= last; i++) {
+			// If an object is selected, keep the first selected one in position
+			if (this.selection.isSelected(i)) {
+				return {
+					id: this.getRow(i).ref.treeViewID,
+					offset: i - first
+				};
+			}
+		}
+		
+		// Otherwise keep the first visible row in position
+		return {
+			id: this.getRow(first).ref.treeViewID,
+			offset: 0
+		};
+	},
+	
+	
+	/**
+	 * Restore a scroll position returned from _saveScrollPosition()
+	 */
+	_rememberScrollPosition: function (scrollPosition) {
+		if (!scrollPosition || !scrollPosition.id) {
+			return;
+		}
+		var row = this.getRowIndexByID(scrollPosition.id);
+		if (row === false) {
+			return;
+		}
+		this._treebox.scrollToRow(Math.max(row - scrollPosition.offset, 0));
+	},
+	
+	
+	onSelect: function () {
+		return this._runListeners('select');
+	},
+	
+	
+	/**
+	 * Add a tree row to the main array, update the row count, tell the treebox that the row
+	 * count changed, and update the row map
+	 *
+	 * @param {Array} newRows - Array to operate on
+	 * @param {Zotero.ItemTreeRow} itemTreeRow
+	 * @param {Number} [beforeRow] - Row index to insert new row before
+	 */
+	_addRow: function (treeRow, beforeRow, skipRowMapRefresh) {
+		this._addRowToArray(this._rows, treeRow, beforeRow);
+		this.rowCount++;
+		this._treebox.rowCountChanged(beforeRow, 1);
+		if (!skipRowMapRefresh) {
+			// Increment all rows in map at or above insertion point
+			for (let i in this._rowMap) {
+				if (this._rowMap[i] >= beforeRow) {
+					this._rowMap[i]++
+				}
+			}
+			// Add new row to map
+			this._rowMap[treeRow.id] = beforeRow;
+		}
+	},
+	
+	
+	/**
+	 * Add a tree row into a given array
+	 *
+	 * @param {Array} array - Array to operate on
+	 * @param {Zotero.CollectionTreeRow|ItemTreeRow} treeRow
+	 * @param {Number} beforeRow - Row index to insert new row before
+	 */
+	_addRowToArray: function (array, treeRow, beforeRow) {
+		array.splice(beforeRow, 0, treeRow);
+	},
+	
+	
+	/**
+	* Remove a row from the main array, decrement the row count, tell the treebox that the row
+	* count changed, update the parent isOpen if necessary, delete the row from the map, and
+	* optionally update all rows above it in the map
+	*/
+	_removeRow: function (row, skipMapUpdate) {
+		var id = this._rows[row].id;
+		var level = this.getLevel(row);
+		
+		var lastRow = row == this.rowCount - 1;
+		if (lastRow && this.selection.isSelected(row)) {
+			// Deselect removed row
+			this.selection.toggleSelect(row);
+			// If no other rows selected, select first selectable row before
+			if (this.selection.count == 0 && row !== 0) {
+				let previous = row;
+				while (true) {
+					previous--;
+					// Should ever happen
+					if (previous < 0) {
+						break;
+					}
+					if (!this.isSelectable(previous)) {
+						continue;
+					}
+					
+					this.selection.toggleSelect(previous);
+					break;
+				}
+			}
+		}
+		
+		this._rows.splice(row, 1);
+		this.rowCount--;
+		// According to the example on https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsITreeBoxObject#rowCountChanged
+		// this should start at row + 1 ("rowCountChanged(rowIndex+1, -1);"), but that appears to
+		// just be wrong. A negative count indicates removed rows, but the index should still
+		// start at the place where the removals begin, not after it going backward.
+		this._treebox.rowCountChanged(row, -1);
+		// Update isOpen if parent and no siblings
+		if (row != 0
+				&& this.getLevel(row - 1) < level
+				&& (!this._rows[row] || this.getLevel(row) != level)) {
+			this._rows[row - 1].isOpen = false;
+			this._treebox.invalidateRow(row - 1);
+		}
+		delete this._rowMap[id];
+		if (!skipMapUpdate) {
+			for (let i in this._rowMap) {
+				if (this._rowMap[i] > row) {
+					this._rowMap[i]--;
+				}
+			}
+		}
+	},
+	
+	
+	getLevel: function (row) {
+		return this._rows[row].level;
+	},
+	
+	
+	isContainerOpen: function(row) {
+		return this._rows[row].isOpen;
+	},
+	
+	
 	/**
 	 *  Called while a drag is over the tree
 	 */
@@ -45,7 +270,7 @@ Zotero.LibraryTreeView.prototype = {
 	 * Called by HTML 5 Drag and Drop when dragging over the tree
 	 */
 	onDragEnter: function (event) {
-		Zotero.DragDrop.currentDragEvent = event;
+		Zotero.DragDrop.currentEvent = event;
 		return false;
 	},
 	
@@ -60,7 +285,7 @@ Zotero.LibraryTreeView.prototype = {
 		// Prevent modifier keys from doing their normal things
 		event.preventDefault();
 		
-		Zotero.DragDrop.currentDragEvent = event;
+		Zotero.DragDrop.currentEvent = event;
 		
 		var target = event.target;
 		if (target.tagName != 'treechildren') {
@@ -78,33 +303,31 @@ Zotero.LibraryTreeView.prototype = {
 		else {
 			throw new Error("Invalid tree id '" + tree.id + "'");
 		}
+		
 		if (!view.canDropCheck(row.value, Zotero.DragDrop.currentOrientation, event.dataTransfer)) {
 			this._setDropEffect(event, "none");
 			return;
 		}
 		
-		if (event.dataTransfer.getData("zotero/collection")) {
-			this._setDropEffect(event, "move");
-		}
-		else if (event.dataTransfer.getData("zotero/item")) {
-			var sourceItemGroup = Zotero.DragDrop.getDragSource();
-			if (sourceItemGroup) {
+		if (event.dataTransfer.getData("zotero/item")) {
+			var sourceCollectionTreeRow = Zotero.DragDrop.getDragSource();
+			if (sourceCollectionTreeRow) {
 				if (this.type == 'collection') {
-					var targetItemGroup = Zotero.DragDrop.getDragTarget();
+					var targetCollectionTreeRow = Zotero.DragDrop.getDragTarget();
 				}
 				else if (this.type == 'item') {
-					var targetItemGroup = this.itemGroup;
+					var targetCollectionTreeRow = this.collectionTreeRow;
 				}
 				else {
 					throw new Error("Invalid type '" + this.type + "'");
 				}
 				
-				if (!targetItemGroup) {
+				if (!targetCollectionTreeRow) {
 					this._setDropEffect(event, "none");
 					return false;
 				}
 				
-				if (sourceItemGroup.id == targetItemGroup.id) {
+				if (sourceCollectionTreeRow.id == targetCollectionTreeRow.id) {
 					// Ignore drag into the same collection
 					if (this.type == 'collection') {
 						this._setDropEffect(event, "none");
@@ -116,12 +339,12 @@ Zotero.LibraryTreeView.prototype = {
 					return false;
 				}
 				// If the source isn't a collection, the action has to be a copy
-				if (!sourceItemGroup.isCollection()) {
+				if (!sourceCollectionTreeRow.isCollection()) {
 					this._setDropEffect(event, "copy");
 					return false;
 				}
 				// For now, all cross-library drags are copies
-				if (sourceItemGroup.ref.libraryID != targetItemGroup.ref.libraryID) {
+				if (sourceCollectionTreeRow.ref.libraryID != targetCollectionTreeRow.ref.libraryID) {
 					this._setDropEffect(event, "copy");
 					return false;
 				}
@@ -172,7 +395,7 @@ Zotero.LibraryTreeView.prototype = {
 		// See note above
 		if (event.dataTransfer.types.contains("application/x-moz-file")) {
 			if (Zotero.isMac) {
-				Zotero.DragDrop.currentDragEvent = event;
+				Zotero.DragDrop.currentEvent = event;
 				if (event.metaKey) {
 					if (event.altKey) {
 						event.dataTransfer.dropEffect = 'link';
@@ -192,7 +415,7 @@ Zotero.LibraryTreeView.prototype = {
 	
 	onDragExit: function (event) {
 		//Zotero.debug("Clearing drag data");
-		Zotero.DragDrop.currentDragEvent = null;
+		Zotero.DragDrop.currentEvent = null;
 	},
 	
 	

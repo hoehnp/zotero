@@ -28,13 +28,13 @@ var ZoteroAdvancedSearch = new function() {
 	this.onLoad = onLoad;
 	this.search = search;
 	this.clear = clear;
-	this.save = save;
 	this.onDblClick = onDblClick;
 	this.onUnload = onUnload;
 	
 	this.itemsView = false;
 	
 	var _searchBox;
+	var _libraryID;
 	
 	function onLoad() {
 		_searchBox = document.getElementById('zotero-search-box');
@@ -45,7 +45,11 @@ var ZoteroAdvancedSearch = new function() {
 		
 		_searchBox.onLibraryChange = this.onLibraryChange;
 		var io = window.arguments[0];
-		_searchBox.search = io.dataIn.search;
+		
+		io.dataIn.search.loadPrimaryData()
+		.then(function () {
+			_searchBox.search = io.dataIn.search;
+		});
 	}
 	
 	
@@ -53,35 +57,20 @@ var ZoteroAdvancedSearch = new function() {
 		_searchBox.updateSearch();
 		_searchBox.active = true;
 		
-		// A minimal implementation of Zotero.CollectionTreeView
-		var itemGroup = {
+		// A minimal implementation of Zotero.CollectionTreeRow
+		var collectionTreeRow = {
+			ref: _searchBox.search,
 			isSearchMode: function() { return true; },
-			getItems: function () {
+			getItems: Zotero.Promise.coroutine(function* () {
 				var search = _searchBox.search.clone();
-				
-				// Hack to create a condition for the search's library --
-				// this logic should really go in the search itself instead of here
-				// and in collectionTreeView.js
-				var conditions = search.getSearchConditions();
-				if (!conditions.some(function (condition) condition.condition == 'libraryID')) {
-					let libraryID = _searchBox.search.libraryID;
-					// TEMP: libraryIDInt
-					if (libraryID) {
-						search.addCondition('libraryID', 'is', libraryID);
-					}
-					else {
-						let groups = Zotero.Groups.getAll();
-						for (let i=0; i<groups.length; i++) {
-							search.addCondition('libraryID', 'isNot', groups[i].libraryID);
-						}
-					}
-				}
-				
-				return Zotero.Items.get(search.search());
-			},
+				search.libraryID = _libraryID;
+				var ids = yield search.search();
+				return Zotero.Items.get(ids);
+			}),
 			isLibrary: function () { return false; },
 			isCollection: function () { return false; },
 			isSearch: function () { return true; },
+			isFeed: () => false,
 			isShare: function () { return false; },
 			isTrash: function () { return false; }
 		}
@@ -90,7 +79,7 @@ var ZoteroAdvancedSearch = new function() {
 			this.itemsView.unregister();
 		}
 		
-		this.itemsView = new Zotero.ItemTreeView(itemGroup, false);
+		this.itemsView = new Zotero.ItemTreeView(collectionTreeRow, false);
 		document.getElementById('zotero-items-tree').view = this.itemsView;
 	}
 	
@@ -104,19 +93,19 @@ var ZoteroAdvancedSearch = new function() {
 		var s = new Zotero.Search();
 		// Don't clear the selected library
 		s.libraryID = _searchBox.search.libraryID;
-		s.addCondition('title', 'contains', '');
+		s.addCondition('title', 'contains', '')
 		_searchBox.search = s;
 		_searchBox.active = false;
 	}
 	
 	
-	function save() {
+	this.save = Zotero.Promise.coroutine(function* () {
 		_searchBox.updateSearch();
 		
 		var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
 								.getService(Components.interfaces.nsIPromptService);
 		
-		var untitled = Zotero.DB.getNextName(
+		var untitled = yield Zotero.DB.getNextName(
 			_searchBox.search.libraryID,
 			'savedSearches',
 			'savedSearchName',
@@ -140,14 +129,17 @@ var ZoteroAdvancedSearch = new function() {
 		
 		var s = _searchBox.search.clone();
 		s.name = name.value;
-		s.save();
+		yield s.save();
 		
-		window.close();
-	}
+		window.close()
+	});
 	
 	
 	this.onLibraryChange = function (libraryID) {
-		document.getElementById('zotero-search-save').disabled = !Zotero.Libraries.isEditable(libraryID);
+		_libraryID = libraryID;
+		var library = Zotero.Libraries.get(libraryID);
+		var isEditable = library.editable && library.libraryType != 'publications';
+		document.getElementById('zotero-search-save').disabled = !isEditable;
 	}
 	
 	

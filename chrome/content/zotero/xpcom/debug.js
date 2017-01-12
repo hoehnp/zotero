@@ -25,42 +25,39 @@
 
 
 Zotero.Debug = new function () {
-	var _console, _stackTrace, _store, _level, _time, _lastTime, _output = [];
+	var _console, _consolePref, _stackTrace, _store, _level, _lastTime, _output = [];
+	var _slowTime = false;
+	var _colorOutput = false;
 	
 	this.init = function (forceDebugLog) {
-		_console = forceDebugLog || Zotero.Prefs.get('debug.log');
+		_consolePref = Zotero.Prefs.get('debug.log');
+		_console = _consolePref || forceDebugLog;
+		if (_console && Zotero.isFx && !Zotero.isBookmarklet && (!Zotero.isWin || _consolePref)) {
+			_colorOutput = true;
+		}
+		if (_colorOutput) {
+			// Time threshold in milliseconds above which intervals
+			// should be colored red in terminal output
+			_slowTime = Zotero.Prefs.get('debug.log.slowTime');
+		}
 		_store = Zotero.Prefs.get('debug.store');
 		if (_store) {
 			Zotero.Prefs.set('debug.store', false);
 		}
 		_level = Zotero.Prefs.get('debug.level');
-		_time = forceDebugLog || Zotero.Prefs.get('debug.time');
 		_stackTrace = Zotero.Prefs.get('debug.stackTrace');
 		
 		this.storing = _store;
 		this.enabled = _console || _store;
+		
+		if (Zotero.isStandalone) {
+			Zotero.Prefs.set('browser.dom.window.dump.enabled', _console, true);
+		}
 	}
 	
-	this.log = function (message, level) {
+	this.log = function (message, level, stack) {
 		if (!_console && !_store) {
 			return;
-		}
-		
-		// Properly display thrown Error objects
-		if (message && message.constructor) {
-			switch (message.constructor.name) {
-				case 'Error':
-				case 'EvalError':
-				case 'RangeError':
-				case 'ReferenceError':
-				case 'SyntaxError':
-				case 'TypeError':
-				case 'URIError':
-					message = "'message' => \"" + message.message + "\"\n"
-								+ Zotero.Utilities.varDump(message) + "\n"
-								+ message.stack;
-					break;
-			}
 		}
 		
 		if (typeof message != 'string') {
@@ -77,41 +74,60 @@ Zotero.Debug = new function () {
 		}
 		
 		var deltaStr = '';
-		if (_time || _store) {
-			var delta = 0;
-			var d = new Date();
-			if (_lastTime) {
-				delta = d - _lastTime;
-			}
-			_lastTime = d;
-			
-			while (("" + delta).length < 7) {
-				delta = '0' + delta;
-			}
-			
-			deltaStr = '(+' + delta + ')';
+		var deltaStrStore = '';
+		var delta = 0;
+		var d = new Date();
+		if (_lastTime) {
+			delta = d - _lastTime;
+		}
+		_lastTime = d;
+		var slowPrefix = "";
+		var slowSuffix = "";
+		if (_slowTime && delta > _slowTime) {
+			slowPrefix = "\x1b[31;40m";
+			slowSuffix = "\x1b[0m";
 		}
 		
-		if (_stackTrace) {
-			var stack = (new Error()).stack;
-			var nl1Index = stack.indexOf("\n")
-			var nl2Index = stack.indexOf("\n", nl1Index+1);
-			var line2 = stack.substring(nl1Index+2, nl2Index-1);
-			var debugLine = line2.substr(line2.indexOf("@"));
-			
-			stack = stack.substring(nl2Index, stack.length-1);
-			message += "\n"+debugLine+stack;
+		// TODO: Replace with String.prototype.padStart once available (Fx48)
+		while (("" + delta).length < 7) {
+			delta = '0' + delta;
+		}
+		
+		deltaStr = "(" + slowPrefix + "+" + delta + slowSuffix + ")";
+		if (_store) {
+			deltaStrStore = "(+" + delta + ")";
+		}
+		
+		if (stack === true) {
+			// Display stack starting from where this was called
+			stack = Components.stack.caller;
+		} else if (stack >= 0) {
+			let i = stack;
+			stack = Components.stack.caller;
+			while(stack && i--) {
+				stack = stack.caller;
+			}
+		} else if (_stackTrace) {
+			// Stack trace enabled globally
+			stack = Components.stack.caller;
+		} else {
+			stack = undefined;
+		}
+		
+		if (stack) {
+			message += '\n' + Zotero.Debug.stackToString(stack);
 		}
 		
 		if (_console) {
-			var output = 'zotero(' + level + ')' + (_time ? deltaStr : '') + ': ' + message;
+			var output = 'zotero(' + level + ')' + deltaStr + ': ' + message;
 			if(Zotero.isFx && !Zotero.isBookmarklet) {
-				// On Windows, where the text console is inexplicably glacial,
-				// log to the Browser Console instead
+				// On Windows, where the text console (-console) is inexplicably glacial,
+				// log to the Browser Console instead if only the -ZoteroDebug flag is used.
+				// Developers can use the debug.log/debug.time prefs and the Cygwin text console.
 				//
 				// TODO: Get rid of the filename and line number
-				if (Zotero.isWin && !Zotero.isStandalone) {
-					var console = Components.utils.import("resource://gre/modules/devtools/Console.jsm", {}).console;
+				if (!_consolePref && Zotero.isWin && !Zotero.isStandalone) {
+					var console = Components.utils.import("resource://gre/modules/Console.jsm", {}).console;
 					console.log(output);
 				}
 				// Otherwise dump to the text console
@@ -130,12 +146,12 @@ Zotero.Debug = new function () {
 					_output.splice(0, Math.abs(overage));
 				}
 			}
-			_output.push('(' + level + ')' + deltaStr + ': ' + message);
+			_output.push('(' + level + ')' + deltaStrStore + ': ' + message);
 		}
 	}
 	
 	
-	this.get = function (maxChars, maxLineLength) {
+	this.get = Zotero.Promise.method(function(maxChars, maxLineLength) {
 		var output = _output;
 		var total = output.length;
 		
@@ -146,7 +162,7 @@ Zotero.Debug = new function () {
 		if (maxLineLength) {
 			for (var i=0, len=output.length; i<len; i++) {
 				if (output[i].length > maxLineLength) {
-					output[i] = Zotero.Utilities.ellipsize(output[i], maxLineLength, true);
+					output[i] = Zotero.Utilities.ellipsize(output[i], maxLineLength, false, true);
 				}
 			}
 		}
@@ -164,15 +180,17 @@ Zotero.Debug = new function () {
 			}
 		}
 		
-		if(Zotero.getErrors) {
-			return Zotero.getErrors(true).join('\n\n') +
-					"\n\n" + Zotero.getSystemInfo() + "\n\n" +
+		if (Zotero.getErrors) {
+			return Zotero.getSystemInfo().then(function(sysInfo) {
+				return Zotero.getErrors(true).join('\n\n') +
+					"\n\n" + sysInfo + "\n\n" +
 					"=========================================================\n\n" +
 					output;
+			});
 		} else {
 			return output;
 		}
-	}
+	});
 	
 	
 	this.setStore = function (enable) {
@@ -193,5 +211,31 @@ Zotero.Debug = new function () {
 	
 	this.clear = function () {
 		_output = [];
+	}
+	
+	/**
+	 * Format a stack trace for output in the same way that Error.stack does
+	 * @param {Components.stack} stack
+	 * @param {Integer} [lines=5] Number of lines to format
+	 */
+	this.stackToString = function (stack, lines) {
+		if (!lines) lines = 5;
+		var str = '';
+		while(stack && lines--) {
+			str += '\n  ' + (stack.name || '') + '@' + stack.filename
+				+ ':' + stack.lineNumber;
+			stack = stack.caller;
+		}
+		return str.substr(1);
+	};
+	
+	
+	/**
+	 * Strip Bluebird lines from a stack trace
+	 *
+	 * @param {String} stack
+	 */
+	this.filterStack = function (stack) {
+		return stack.split(/\n/).filter(line => line.indexOf('zotero/bluebird') == -1).join('\n');
 	}
 }

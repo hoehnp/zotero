@@ -23,18 +23,19 @@
     ***** END LICENSE BLOCK *****
 */
 
+// Enumeration of types of translators
+var TRANSLATOR_TYPES = {"import":1, "export":2, "web":4, "search":8};
+
 // Properties required for every translator
 var TRANSLATOR_REQUIRED_PROPERTIES = ["translatorID", "translatorType", "label", "creator",
                                       "target", "priority", "lastUpdated"];
 // Properties that are preserved if present
-var TRANSLATOR_OPTIONAL_PROPERTIES = ["browserSupport", "minVersion", "maxVersion",
+var TRANSLATOR_OPTIONAL_PROPERTIES = ["targetAll", "browserSupport", "minVersion", "maxVersion",
                                       "inRepository", "configOptions", "displayOptions",
-                                      "hiddenPrefs"];
+                                      "hiddenPrefs", "itemType"];
 // Properties that are passed from background to inject page in connector
 var TRANSLATOR_PASSING_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES.
-                                    concat(["browserSupport", "code", "runMode"]);
-// Properties that are saved in connector if set but not required
-var TRANSLATOR_SAVE_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES.concat(["browserSupport"]);
+                                    concat(["targetAll", "browserSupport", "code", "runMode", "itemType"]);
 
 /**
  * @class Represents an individual translator
@@ -59,9 +60,11 @@ var TRANSLATOR_SAVE_PROPERTIES = TRANSLATOR_REQUIRED_PROPERTIES.concat(["browser
  * @property {Object} hiddenPrefs Hidden preferences configurable through about:config
  * @property {Boolean} inRepository Whether the translator may be found in the repository
  * @property {String} lastUpdated SQL-style date and time of translator's last update
+ * @property {Object} metadata - Metadata block as object
  * @property {String} code The executable JavaScript for the translator
  * @property {Boolean} cacheCode Whether to cache code for this session (non-connector only)
- * @property {nsIFile} [file] File corresponding to this translator (non-connector only)
+ * @property {String} [path] File path corresponding to this translator (non-connector only)
+ * @property {String} [fileName] File name corresponding to this translator (non-connector only)
  */
 Zotero.Translator = function(info) {
 	this.init(info);
@@ -72,18 +75,15 @@ Zotero.Translator = function(info) {
  */
 Zotero.Translator.prototype.init = function(info) {
 	// make sure we have all the properties
-	for(var i=0; i<TRANSLATOR_REQUIRED_PROPERTIES.length; i++) {
-		var property = TRANSLATOR_REQUIRED_PROPERTIES[i];
-		if(info[property] === undefined) {
+	for (let property of TRANSLATOR_REQUIRED_PROPERTIES) {
+		if (info[property] === undefined) {
 			this.logError(new Error('Missing property "'+property+'" in translator metadata JSON object in ' + info.label));
-			haveMetadata = false;
 			break;
 		} else {
 			this[property] = info[property];
 		}
 	}
-	for(var i=0; i<TRANSLATOR_OPTIONAL_PROPERTIES.length; i++) {
-		var property = TRANSLATOR_OPTIONAL_PROPERTIES[i];
+	for (let property of TRANSLATOR_OPTIONAL_PROPERTIES) {
 		if(info[property] !== undefined) {
 			this[property] = info[property];
 		}
@@ -91,75 +91,84 @@ Zotero.Translator.prototype.init = function(info) {
 	
 	this.browserSupport = info["browserSupport"] ? info["browserSupport"] : "g";
 	
-	var supported = (
-		Zotero.isBookmarklet ?
-			(this.browserSupport.indexOf(Zotero.browser) !== -1 && this.browserSupport.indexOf("b") !== -1) ||
-			/(?:^|; ?)bookmarklet-debug-mode=1(?:$|; ?)/.test(document.cookie) :
-		this.browserSupport.indexOf(Zotero.browser) !== -1);
+	var supported = this.browserSupport.indexOf(Zotero.browser) !== -1 && 
+		(!Zotero.isBookmarklet || this.browserSupport.indexOf("b") !== -1 || 
+			/(?:^|; ?)bookmarklet-debug-mode=1(?:$|; ?)/.test(document.cookie));
 
-	if(supported) {
+	if (supported) {
 		this.runMode = Zotero.Translator.RUN_MODE_IN_BROWSER;
 	} else {
 		this.runMode = Zotero.Translator.RUN_MODE_ZOTERO_STANDALONE;
 	}
 	
-	if(this.translatorType & TRANSLATOR_TYPES["import"]) {
+	if (this.translatorType & TRANSLATOR_TYPES["import"]) {
 		// compile import regexp to match only file extension
 		this.importRegexp = this.target ? new RegExp("\\."+this.target+"$", "i") : null;
-	} else if(this.hasOwnProperty("importRegexp")) {
+	} else if (this.hasOwnProperty("importRegexp")) {
 		delete this.importRegexp;
 	}
 	
 	this.cacheCode = Zotero.isConnector;
-	if(this.translatorType & TRANSLATOR_TYPES["web"]) {
+	if (this.translatorType & TRANSLATOR_TYPES["web"]) {
 		// compile web regexp
 		this.cacheCode |= !this.target;
-		this.webRegexp = this.target ? new RegExp(this.target, "i") : null;
-	} else if(this.hasOwnProperty("webRegexp")) {
+		this.webRegexp = {
+			root: this.target ? new RegExp(this.target, "i") : null,
+			all: this.targetAll ? new RegExp(this.targetAll, "i") : null
+		};
+	} else if (this.hasOwnProperty("webRegexp")) {
 		delete this.webRegexp;
 	}
 	
-	if(info.file) this.file = info.file;
-	if(info.code && this.cacheCode) {
-		this.code = info.code;
-	} else if(this.hasOwnProperty("code")) {
+	if (info.path) {
+		this.path = info.path;
+		this.fileName = OS.Path.basename(info.path);
+	}
+	if (info.code && this.cacheCode) {
+		this.code = Zotero.Translator.replaceDeprecatedStatements(info.code);
+	} else if (this.hasOwnProperty("code")) {
 		delete this.code;
 	}
+	// Save a copy of the metadata block
+	delete info.path;
+	delete info.code;
+	this.metadata = info;
+
 }
 
 /**
  * Load code for a translator
  */
-Zotero.Translator.prototype.getCode = function() {
-	if(this.code) return Q(this.code);
+Zotero.Translator.prototype.getCode = Zotero.Promise.method(function () {
+	if (this.code) return this.code;
 
-	var me = this;
-	if(Zotero.isConnector) {
-		// TODO make this a promise
-		return Zotero.Repo.getTranslatorCode(this.translatorID).
-		spread(function(code, source) {
+	if (Zotero.isConnector) {
+		return Zotero.Repo.getTranslatorCode(this.translatorID)
+		.then(function (args) {
+			var code = args[0];
+			var source = args[1];
 			if(!code) {
-				throw "Code for "+me.label+" could not be retrieved";
+				throw new Error("Code for " + this.label + " could not be retrieved");
 			}
 			// Cache any translators for session, since retrieving via
 			// HTTP may be expensive
-			me.code = code;
-			me.codeSource = source;
+			this.code = code;
+			this.codeSource = source;
 			return code;
-		});
+		}.bind(this));
 	} else {
-		var promise = Zotero.File.getContentsAsync(this.file);
+		var promise = Zotero.File.getContentsAsync(this.path);
 		if(this.cacheCode) {
 			// Cache target-less web translators for session, since we
 			// will use them a lot
-			promise.then(function(code) {
-				me.code = code;
+			return promise.then(function(code) {
+				this.code = code;
 				return code;
-			});
+			}.bind(this));
 		}
 		return promise;
 	}
-}
+});
 
 /**
  * Get metadata block for a translator
@@ -168,7 +177,7 @@ Zotero.Translator.prototype.serialize = function(properties) {
 	var info = {};
 	for(var i in properties) {
 		var property = properties[i];
-		info[property] = translator[property];
+		info[property] = this[property];
 	}
 	return info;
 }
@@ -182,13 +191,27 @@ Zotero.Translator.prototype.serialize = function(properties) {
  * @param {Integer} colNumber
  */
 Zotero.Translator.prototype.logError = function(message, type, line, lineNumber, colNumber) {
-	if(Zotero.isFx && this.file) {
+	if (Zotero.isFx && this.path) {
+		Components.utils.import("resource://gre/modules/FileUtils.jsm");
+		var file = new FileUtils.File(this.path);
 		var ios = Components.classes["@mozilla.org/network/io-service;1"].
 			getService(Components.interfaces.nsIIOService);
-		Zotero.log(message, type ? type : "error", ios.newFileURI(this.file).spec);
+		Zotero.log(message, type ? type : "error", ios.newFileURI(file).spec);
+		Zotero.debug(message, 1);
 	} else {
 		Zotero.logError(message);
 	}
+}
+
+/**
+ * Replace deprecated ES5 statements
+ */
+Zotero.Translator.replaceDeprecatedStatements = function(code) {
+	const foreach = /^(\s*)for each\s*\((var )?([^ ]+) in (.*?)\)(\s*){/gm;
+	code = code.replace(foreach, "$1var $3_zForEachSubject = $4; "+
+		"for(var $3_zForEachIndex in $3_zForEachSubject)$5{ "+
+		"$2$3 = $3_zForEachSubject[$3_zForEachIndex];");
+	return code;
 }
 
 Zotero.Translator.RUN_MODE_IN_BROWSER = 1;
